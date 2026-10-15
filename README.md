@@ -120,10 +120,8 @@ evalgen/
 │   ├── vite.config.ts
 │   └── tailwind.config.js
 ├── .github/workflows/
-│   ├── ci-backend.yml              # Ruff + Pytest on PR/push
-│   ├── ci-frontend.yml             # Vue-tsc + Vite build check on PR/push
-│   ├── deploy-backend.yml          # Build Docker, push to GHCR, deploy to Render
-│   └── deploy-frontend.yml         # Build & direct upload to Cloudflare Pages
+│   ├── ci.yml                      # Unified Backend (Ruff+Pytest) & Frontend (Vite) CI
+│   └── deploy-backend.yml          # Build Docker, push to GHCR, deploy to Render
 ├── render.yaml                     # Render Blueprint (Infrastructure as Code)
 ├── .gitignore
 └── README.md
@@ -183,7 +181,53 @@ Tests include verification that transient rate limit errors retry **exactly 3 ti
 
 ---
 
-## 7. Zero-Cost Cloud Deployment Runbook
+## 7. Evaluating Exported Datasets (LLM-as-a-Judge Benchmark)
+
+EvalGen includes a standalone benchmark evaluation suite in `evals/run_evals.py`. It automatically loads your `GEMINI_API_KEY` and `GEMINI_MODEL` (`gemini-3.8-flash`) from `backend/.env`, executes test prompts through your application, and uses Gemini as an impartial judge to score responses against golden answers and rubrics.
+
+### Option A: Evaluate Default Dataset
+Run the benchmark on the bundled baseline dataset (`evals/dataset.csv`):
+```bash
+backend/.venv/bin/python evals/run_evals.py
+```
+
+### Option B: Evaluate Exported CSV File (Sample Test)
+Export any evaluation dataset from the EvalGen web dashboard and pass the downloaded CSV path directly to the runner:
+```bash
+# Example with downloaded export from the UI
+backend/.venv/bin/python evals/run_evals.py ~/Downloads/customer-support-evals.csv
+
+# Or specify any local CSV in your workspace
+backend/.venv/bin/python evals/run_evals.py evals/dataset.csv
+```
+
+#### Sample Output:
+```text
+✨ Using live Google Gemini (gemini-3.8-flash) for evaluation.
+
+🚀 Running Benchmark Suite: customer-support-evals.csv
+================================================================================
+[1/3] Testing: How do I request a refund for an order placed 10...
+[2/3] Testing: My package arrived damaged and missing items...
+[3/3] Testing: Can I change my delivery address after shipping...
+
+================================================================================
+📊 EVALUATION SCORECARD
+================================================================================
+╭──────────┬────────┬──────────┬────────┬───────────────────────────────────────────────╮
+│ ID       │ Tier   │ Status   │ Score  │ Judge Critique                                │
+├──────────┼────────┼──────────┼────────┼───────────────────────────────────────────────┤
+│ 8f1a2b3c │ EASY   │ ✅ PASS  │ 0.95   │ Clear, polite, and follows 14-day policy.     │
+│ a4d5e6f7 │ HARD   │ ✅ PASS  │ 0.88   │ Acknowledges damage and provides claim link.  │
+│ 1c2d3e4f │ MEDIUM │ ❌ FAIL  │ 0.55   │ Missed required apology and timeframe bounds. │
+╰──────────┴────────┴──────────┴────────┴───────────────────────────────────────────────╯
+
+🎯 Overall Pass Rate: 2/3 Passed (66.7%)
+```
+
+---
+
+## 8. Zero-Cost Cloud Deployment Runbook
 
 ### Step 1: Provision Neon Serverless Postgres
 1. Go to [Neon.tech](https://neon.tech) and create a free project.
