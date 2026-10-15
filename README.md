@@ -1,9 +1,5 @@
 # EvalGen: AI Evaluation Set Generator
 
-[![Backend CI](https://github.com/OWNER/evalgen/actions/workflows/ci-backend.yml/badge.svg)](https://github.com/OWNER/evalgen/actions/workflows/ci-backend.yml)
-[![Frontend CI](https://github.com/OWNER/evalgen/actions/workflows/ci-frontend.yml/badge.svg)](https://github.com/OWNER/evalgen/actions/workflows/ci-frontend.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
-
 **EvalGen** is an open-source, full-stack AI evaluation suite generator designed for mastering **AI Evals**, synthetic test generation, structured LLM outputs, and **zero-cost cloud-native deployments**.
 
 ---
@@ -212,3 +208,7 @@ Tests include verification that transient rate limit errors retry **exactly 3 ti
    - `CLOUDFLARE_ACCOUNT_ID`
    - `RENDER_DEPLOY_HOOK_URL`
 4. Pushing to `main` will automatically trigger GHCR container build, Render deploy, and Cloudflare Pages direct upload!
+
+## License
+
+MIT
