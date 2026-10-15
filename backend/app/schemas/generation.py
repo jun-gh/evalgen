@@ -1,6 +1,5 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from app.schemas.test_case import TestCaseCreate
 
 
 class GenerationRequest(BaseModel):

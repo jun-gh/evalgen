@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Ruff Linter
         run: |
-          ruff check backend/app backend/tests
+          ruff check backend/app backend/tests --config backend/pyproject.toml
 
       - name: Run Pytest Test Suite
         env:

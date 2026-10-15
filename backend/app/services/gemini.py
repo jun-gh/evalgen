@@ -161,7 +161,7 @@ class GeminiService:
                     prompt_input=f"[{request.domain}] Sample test input {i + 1} regarding: {request.title}",
                     expected_output=f"Standard expected golden output for case {i + 1} with high factual accuracy.",
                     context=f"Context document sample {i + 1}" if request.context_documents else None,
-                    rubric=f"1. Factual correctness (40%)\n2. Adherence to safety bounds (30%)\n3. Conciseness (30%)",
+                    rubric="1. Factual correctness (40%)\n2. Adherence to safety bounds (30%)\n3. Conciseness (30%)",
                     difficulty=diff,
                     tags=[request.eval_type, diff, "synthetic-eval"],
                 )
