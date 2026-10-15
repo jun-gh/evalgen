@@ -10,6 +10,10 @@ export const evalService = {
   async listEvalSets(domain?: string): Promise<EvalSet[]> {
     const params = domain ? { domain } : {};
     const res = await apiClient.get<EvalSet[]>("/eval-sets", { params });
+    if (!Array.isArray(res.data)) {
+      console.warn("[evalService] Expected array from /eval-sets, got:", typeof res.data);
+      return [];
+    }
     return res.data;
   },
 
