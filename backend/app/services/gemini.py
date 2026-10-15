@@ -70,9 +70,10 @@ class GeminiService:
         Generate synthetic evaluation test cases with max 3 automatic retries.
         Returns the parsed result and the retry attempts count.
         """
-        # If no API key is provided and running in development, provide structured mock data for local testing
-        if not self.api_key and settings.ENVIRONMENT.lower() == "development":
-            logger.info("Using simulated mock evaluation generator (GEMINI_API_KEY not configured).")
+        # If no API key is provided or dummy key in dev/test, provide structured mock data
+        is_dummy_key = not self.api_key or self.api_key in ("your_gemini_api_key_here", "dummy", "test")
+        if (is_dummy_key or settings.ENVIRONMENT.lower() == "testing") and settings.ENVIRONMENT.lower() in ("development", "testing"):
+            logger.info("Using simulated mock evaluation generator for dev/test mode.")
             return self._generate_mock_dataset(request), 0
 
         system_instruction = (
