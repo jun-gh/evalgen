@@ -59,10 +59,13 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Trigger Render Deployment via Deploy Hook
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          echo "Triggering Render scale-to-zero Web Service deployment..."
-          curl -s -f -X POST "$RENDER_DEPLOY_HOOK_URL"
-          echo "Deployment triggered successfully on Render."
+          if [ -n "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Triggering Render scale-to-zero Web Service deployment..."
+            curl -s -f -X POST "$RENDER_DEPLOY_HOOK_URL"
+            echo "Deployment triggered successfully on Render."
+          else
+            echo "RENDER_DEPLOY_HOOK_URL secret not configured. Skipping Render trigger."
+          fi
