@@ -31,7 +31,7 @@ const MAX_CLIENT_RETRIES = 3;
 apiClient.interceptors.response.use(
   (response) => {
     // If the server returned HTML instead of JSON (happens when VITE_API_URL is missing and SPA router returns index.html)
-    const contentType = response.headers["content-type"] || "";
+    const contentType = String(response.headers["content-type"] || "");
     if (
       typeof response.data === "string" &&
       (contentType.includes("text/html") || response.data.trim().startsWith("<!doctype") || response.data.trim().startsWith("<html"))
