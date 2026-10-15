@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from typing import Optional, Tuple
@@ -9,13 +10,27 @@ from app.schemas.generation import GenerationRequest, SyntheticGenerationResult,
 
 logger = logging.getLogger("evalgen.gemini")
 
+VALID_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-exp"]
+
+
+def normalize_gemini_model(model_name: str) -> str:
+    """Normalize user-specified model strings to valid Google Gemini API models."""
+    cleaned = (model_name or "").strip().lower()
+    if cleaned in VALID_MODELS:
+        return cleaned
+    if "flash" in cleaned:
+        return "gemini-2.0-flash"
+    if "pro" in cleaned:
+        return "gemini-1.5-pro"
+    return "gemini-2.0-flash"
+
 
 class GeminiService:
     """Service wrapping Google Gemini API with 3-attempt exponential backoff."""
 
     def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
         self.api_key = api_key or settings.GEMINI_API_KEY
-        self.model_name = model_name or settings.GEMINI_MODEL
+        self.model_name = normalize_gemini_model(model_name or settings.GEMINI_MODEL)
         self._client = None
 
     def _get_client(self):
@@ -33,10 +48,10 @@ class GeminiService:
                 self._client = gai.GenerativeModel(self.model_name)
         return self._client
 
-    @with_retry(max_attempts=3, min_backoff=1.0, max_backoff=8.0)
-    async def _call_gemini_raw(self, prompt: str, system_instruction: str) -> str:
-        """Raw call to Gemini API decorated with 3-attempt exponential backoff."""
+    def _sync_generate(self, prompt: str, system_instruction: str) -> str:
+        """Synchronous invocation of Gemini API to be executed in threadpool."""
         client = self._get_client()
+        model_id = normalize_gemini_model(self.model_name)
 
         # Handle modern google-genai Client
         if hasattr(client, "models") and hasattr(client.models, "generate_content"):
@@ -47,7 +62,7 @@ class GeminiService:
                 response_mime_type="application/json",
             )
             response = client.models.generate_content(
-                model=self.model_name,
+                model=model_id,
                 contents=prompt,
                 config=config,
             )
@@ -56,12 +71,17 @@ class GeminiService:
         # Handle classic google.generativeai
         import google.generativeai as gai
         model = gai.GenerativeModel(
-            model_name=self.model_name,
+            model_name=model_id,
             system_instruction=system_instruction,
             generation_config={"response_mime_type": "application/json", "temperature": 0.7},
         )
         response = model.generate_content(prompt)
         return response.text
+
+    @with_retry(max_attempts=3, min_backoff=1.0, max_backoff=6.0)
+    async def _call_gemini_raw(self, prompt: str, system_instruction: str) -> str:
+        """Call Gemini API asynchronously in threadpool to avoid blocking FastAPI event loop."""
+        return await asyncio.to_thread(self._sync_generate, prompt, system_instruction)
 
     async def generate_eval_set(
         self, request: GenerationRequest
@@ -70,10 +90,12 @@ class GeminiService:
         Generate synthetic evaluation test cases with max 3 automatic retries.
         Returns the parsed result and the retry attempts count.
         """
-        # If no API key is provided or dummy key in dev/test, provide structured mock data
-        is_dummy_key = not self.api_key or self.api_key in ("your_gemini_api_key_here", "dummy", "test")
-        if (is_dummy_key or settings.ENVIRONMENT.lower() == "testing") and settings.ENVIRONMENT.lower() in ("development", "testing"):
-            logger.info("Using simulated mock evaluation generator for dev/test mode.")
+        is_dev = settings.ENVIRONMENT.lower() in ("development", "testing")
+        # Check if the API key is a placeholder or not a standard Google AI Studio key (AIzaSy...)
+        has_valid_key_format = bool(self.api_key and self.api_key.startswith("AIzaSy"))
+
+        if is_dev and not has_valid_key_format:
+            logger.info("Using simulated offline mock evaluation generator for local development.")
             return self._generate_mock_dataset(request), 0
 
         system_instruction = (
@@ -121,7 +143,6 @@ class GeminiService:
             parsed = SyntheticGenerationResult.model_validate(data)
             return parsed, retry_count
         except RetryError as re:
-            # 3 retries were exhausted
             logger.error("Maximum 3 retries exhausted for Gemini API call: %s", re)
             raise RateLimitExceededException(
                 message="Gemini API rate limit or transient failure encountered. 3 retries were exhausted.",
@@ -129,7 +150,11 @@ class GeminiService:
                 retry_count=3,
             )
         except Exception as e:
-            logger.error("Gemini synthesis failed: %s", str(e), exc_info=True)
+            logger.error("Gemini synthesis error: %s", str(e), exc_info=True)
+            if is_dev:
+                logger.warning("Local dev fallback to mock dataset due to Gemini API failure: %s", str(e))
+                return self._generate_mock_dataset(request), 0
+
             if is_retryable_exception(e):
                 raise RateLimitExceededException(
                     message=f"Gemini API rate limit encountered: {str(e)}",

@@ -46,12 +46,13 @@ apiClient.interceptors.response.use(
       uiStore.setServerStatus("waking");
     }
 
-    // Attempt client-side retry for safe methods (GET, HEAD, OPTIONS) or transient 502/503/504
-    const isRetryableStatus = error.response && [502, 503, 504].includes(error.response.status);
-    const isNetworkError = !error.response;
+    // Only retry safe, idempotent methods (GET, HEAD, OPTIONS) on client side
+    // Non-idempotent operations (POST generation) are already retried up to 3x on the backend
     const isSafeMethod = config?.method?.toLowerCase() === "get";
+    const isNetworkError = !error.response;
+    const isRetryableStatus = error.response && [502, 503, 504].includes(error.response.status);
 
-    if (config && (isSafeMethod || isRetryableStatus || isNetworkError)) {
+    if (config && isSafeMethod && (isRetryableStatus || isNetworkError)) {
       config._retryCount = config._retryCount || 0;
 
       if (config._retryCount < MAX_CLIENT_RETRIES) {
@@ -65,10 +66,10 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // If all retries exhausted or non-retryable error, surface formatted error to UI
+    // Surface formatted error to UI
     let errorDetail = {
       code: "NETWORK_ERROR",
-      message: "Unable to reach the EvalGen server. The server might be waking up (scale-to-zero).",
+      message: "Unable to reach the EvalGen server. Please ensure the backend is running at http://localhost:8000.",
       trace_id: (config?.headers?.["X-Trace-ID"] as string) || "unknown",
       retryable: true,
       retry_count: config?._retryCount || 0,
