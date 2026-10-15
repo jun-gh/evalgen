@@ -64,9 +64,14 @@ class Settings(BaseSettings):
         """Converts postgres:// or postgresql:// to postgresql+asyncpg:// for async SQLAlchemy."""
         url = self.DATABASE_URL
         if url.startswith("postgres://"):
-            return url.replace("postgres://", "postgresql+asyncpg://", 1)
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
-            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        # asyncpg requires ?ssl= instead of ?sslmode= (e.g. Neon Serverless Postgres URLs)
+        if "sslmode=" in url:
+            url = url.replace("sslmode=", "ssl=")
+
         return url
 
 
