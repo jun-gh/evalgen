@@ -37,7 +37,7 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  async (error: AxiosError<ErrorEnvelope>) => {
+  async (error: AxiosError<any>) => {
     const config = error.config as CustomAxiosRequestConfig;
     const uiStore = useUiStore();
 

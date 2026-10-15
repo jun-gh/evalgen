@@ -18,6 +18,6 @@ services:
       - key: GEMINI_API_KEY
         sync: false # Set in Render Dashboard with Gemini API key
       - key: CORS_ORIGINS
-        value: "https://evalgen.pages.dev,http://localhost:5173"
+        value: "https://evalgen.jmco.workers.dev,http://localhost:5173"
       - key: LOG_LEVEL
         value: info
