@@ -89,7 +89,7 @@ apiClient.interceptors.response.use(
     // Surface formatted error to UI
     let errorDetail = {
       code: "NETWORK_ERROR",
-      message: "Unable to reach the EvalGen server. Please ensure the backend is running at http://localhost:8000.",
+      message: `Unable to reach the EvalGen backend at "${apiClient.defaults.baseURL}". If this is Render's free tier, the server may be cold-starting from scale-to-zero (~45s), or CORS is blocking the domain.`,
       trace_id: (config?.headers?.["X-Trace-ID"] as string) || "unknown",
       retryable: true,
       retry_count: config?._retryCount || 0,

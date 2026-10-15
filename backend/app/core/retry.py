@@ -30,6 +30,10 @@ def is_retryable_exception(exc: Exception) -> bool:
     if any(nr in exc_str for nr in non_retryable):
         return False
 
+    # Check standard Python networking and OS exception types
+    if isinstance(exc, (ConnectionError, TimeoutError, OSError)):
+        return True
+
     # Rate limiting and transient network errors
     retryable_indicators = [
         "429",
@@ -40,7 +44,10 @@ def is_retryable_exception(exc: Exception) -> bool:
         "503",
         "504",
         "timeout",
-        "connection reset",
+        "connection",
+        "connect",
+        "reset",
+        "network",
         "temporarily unavailable",
     ]
 

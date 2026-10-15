@@ -40,13 +40,19 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS Middleware
-origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else ["*"]
+# CORS Middleware: Configured securely via CORS_ORIGINS environment variable
+cors_origins = (
+    settings.CORS_ORIGINS
+    if isinstance(settings.CORS_ORIGINS, list)
+    else [o.strip() for o in str(settings.CORS_ORIGINS).split(",") if o.strip()]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=cors_origins,
+    allow_origin_regex=r"https://.*(\.pages\.dev|\.workers\.dev)",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
