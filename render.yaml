@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: evalgen-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free # Zero-cost tier: automatically scales to zero when idle
+    region: oregon # or ohio, frankfurt, singapore
+    healthCheckPath: /api/v1/health
+    autoDeploy: false # Deployed via GitHub Actions workflow on release/merge
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: "8000"
+      - key: DATABASE_URL
+        sync: false # Set in Render Dashboard to Neon Postgres connection string
+      - key: GEMINI_API_KEY
+        sync: false # Set in Render Dashboard with Gemini API key
+      - key: CORS_ORIGINS
+        value: "https://evalgen.pages.dev,http://localhost:5173"
+      - key: LOG_LEVEL
+        value: info
