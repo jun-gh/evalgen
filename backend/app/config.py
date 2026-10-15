@@ -31,7 +31,7 @@ class Settings(BaseSettings):
         default="",
         description="Google Gemini API Key for synthesis and evaluation",
     )
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-3.8-flash"
 
     # CORS configuration
     CORS_ORIGINS: Union[List[str], str] = [

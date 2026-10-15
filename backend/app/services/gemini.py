@@ -10,27 +10,12 @@ from app.schemas.generation import GenerationRequest, SyntheticGenerationResult,
 
 logger = logging.getLogger("evalgen.gemini")
 
-VALID_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-exp"]
-
-
-def normalize_gemini_model(model_name: str) -> str:
-    """Normalize user-specified model strings to valid Google Gemini API models."""
-    cleaned = (model_name or "").strip().lower()
-    if cleaned in VALID_MODELS:
-        return cleaned
-    if "flash" in cleaned:
-        return "gemini-2.0-flash"
-    if "pro" in cleaned:
-        return "gemini-1.5-pro"
-    return "gemini-2.0-flash"
-
-
 class GeminiService:
     """Service wrapping Google Gemini API with 3-attempt exponential backoff."""
 
     def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
         self.api_key = api_key or settings.GEMINI_API_KEY
-        self.model_name = normalize_gemini_model(model_name or settings.GEMINI_MODEL)
+        self.model_name = (model_name or settings.GEMINI_MODEL).strip()
         self._client = None
 
     def _get_client(self):
@@ -51,7 +36,6 @@ class GeminiService:
     def _sync_generate(self, prompt: str, system_instruction: str) -> str:
         """Synchronous invocation of Gemini API to be executed in threadpool."""
         client = self._get_client()
-        model_id = normalize_gemini_model(self.model_name)
 
         # Handle modern google-genai Client
         if hasattr(client, "models") and hasattr(client.models, "generate_content"):
@@ -62,7 +46,7 @@ class GeminiService:
                 response_mime_type="application/json",
             )
             response = client.models.generate_content(
-                model=model_id,
+                model=self.model_name,
                 contents=prompt,
                 config=config,
             )
@@ -71,7 +55,7 @@ class GeminiService:
         # Handle classic google.generativeai
         import google.generativeai as gai
         model = gai.GenerativeModel(
-            model_name=model_id,
+            model_name=self.model_name,
             system_instruction=system_instruction,
             generation_config={"response_mime_type": "application/json", "temperature": 0.7},
         )
@@ -91,11 +75,10 @@ class GeminiService:
         Returns the parsed result and the retry attempts count.
         """
         is_dev = settings.ENVIRONMENT.lower() in ("development", "testing")
-        # Check if the API key is a placeholder or not a standard Google AI Studio key (AIzaSy...)
-        has_valid_key_format = bool(self.api_key and self.api_key.startswith("AIzaSy"))
+        is_placeholder_key = not self.api_key or self.api_key in ("your_gemini_api_key_here", "dummy", "test")
 
-        if is_dev and not has_valid_key_format:
-            logger.info("Using simulated offline mock evaluation generator for local development.")
+        if is_dev and is_placeholder_key:
+            logger.info("Using simulated offline mock evaluation generator (no GEMINI_API_KEY configured).")
             return self._generate_mock_dataset(request), 0
 
         system_instruction = (
