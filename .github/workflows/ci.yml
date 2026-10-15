@@ -37,7 +37,7 @@ jobs:
       - name: Run Pytest Test Suite
         env:
           ENVIRONMENT: testing
-          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
           PYTHONPATH=backend pytest backend/tests -v --durations=10
 
