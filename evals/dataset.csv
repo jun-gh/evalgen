@@ -1,0 +1,16 @@
+ID,Prompt Input,Expected Output,Context,Rubric,Difficulty,Tags
+49974c7c-72b0-4d83-a1e5-8d8892b58e23,[Customer Support] Sample test input 1 regarding: Customer Support RAG Benchmark,Standard expected golden output for case 1 with high factual accuracy.,,"1. Factual correctness (40%)
+2. Adherence to safety bounds (30%)
+3. Conciseness (30%)",easy,"rag_qa, easy, synthetic-eval"
+38336da1-3ab2-4324-8838-2ae62aefc7cc,[Customer Support] Sample test input 2 regarding: Customer Support RAG Benchmark,Standard expected golden output for case 2 with high factual accuracy.,,"1. Factual correctness (40%)
+2. Adherence to safety bounds (30%)
+3. Conciseness (30%)",medium,"rag_qa, medium, synthetic-eval"
+930b53fa-91a6-4d99-a7e0-da13acad7af1,[Customer Support] Sample test input 3 regarding: Customer Support RAG Benchmark,Standard expected golden output for case 3 with high factual accuracy.,,"1. Factual correctness (40%)
+2. Adherence to safety bounds (30%)
+3. Conciseness (30%)",hard,"rag_qa, hard, synthetic-eval"
+a598a540-ad61-4a7c-821c-c5da5af114ed,[Customer Support] Sample test input 4 regarding: Customer Support RAG Benchmark,Standard expected golden output for case 4 with high factual accuracy.,,"1. Factual correctness (40%)
+2. Adherence to safety bounds (30%)
+3. Conciseness (30%)",adversarial,"rag_qa, adversarial, synthetic-eval"
+a24165da-1085-4717-a942-91fc18572b8d,[Customer Support] Sample test input 5 regarding: Customer Support RAG Benchmark,Standard expected golden output for case 5 with high factual accuracy.,,"1. Factual correctness (40%)
+2. Adherence to safety bounds (30%)
+3. Conciseness (30%)",easy,"rag_qa, easy, synthetic-eval"
