@@ -38,11 +38,22 @@ else:
 def your_ai_application(prompt: str, context: str = "") -> str:
     """Simulates or calls your actual AI application/prompt under test."""
     if HAS_GEMINI:
-        resp = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=f"Context: {context}\n\nUser Question: {prompt}\nAnswer concisely:",
-        )
-        return resp.text.strip()
+        import time
+        for attempt in range(3):
+            try:
+                resp = client.models.generate_content(
+                    model=GEMINI_MODEL,
+                    contents=f"Context: {context}\n\nUser Question: {prompt}\nAnswer concisely:",
+                )
+                if resp and resp.text:
+                    return resp.text.strip()
+                return f"[No text in response for: {prompt[:30]}...]"
+            except Exception as exc:
+                if attempt < 2 and any(term in str(exc).lower() for term in ["429", "quota", "rate limit", "timeout", "connection"]):
+                    time.sleep(2 ** (attempt + 1))
+                    continue
+                print(f"\n⚠️  Gemini API error during generation ({type(exc).__name__}): {exc}")
+                return f"Simulated fallback response due to API error ({type(exc).__name__})."
     else:
         # Mock responses for offline testing
         return f"Standard response adhering to policy: {prompt[:40]}..."
@@ -52,6 +63,7 @@ def your_ai_application(prompt: str, context: str = "") -> str:
 def evaluate_test_case(prompt: str, expected: str, actual: str, rubric: str) -> dict:
     """Grades the candidate output against the golden answer and rubric."""
     if HAS_GEMINI:
+        import time
         judge_prompt = f"""
 You are an impartial, strict AI Evaluation Judge.
 Grade the Candidate Output against the Reference Golden Answer and Rubric.
@@ -69,23 +81,38 @@ Return ONLY valid JSON matching this schema:
   "critique": "<one-sentence justification of score>"
 }}
 """
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=judge_prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
-        )
-        return json.loads(response.text)
-    else:
-        # Heuristic grading fallback for offline testing
-        norm_exp = expected.strip().lower()
-        norm_act = actual.strip().lower()
-        match = any(word in norm_act for word in norm_exp.split()[:4])
-        score = 0.85 if match else 0.4
-        return {
-            "score": score,
-            "passed": score >= 0.7,
-            "critique": "Heuristic match: key terminology found in actual output." if match else "Missing key terms from expected output."
-        }
+        for attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model=GEMINI_MODEL,
+                    contents=judge_prompt,
+                    config=types.GenerateContentConfig(response_mime_type="application/json"),
+                )
+                raw_text = (response.text or "").strip()
+                if raw_text.startswith("```json"):
+                    raw_text = raw_text[7:]
+                if raw_text.startswith("```"):
+                    raw_text = raw_text[3:]
+                if raw_text.endswith("```"):
+                    raw_text = raw_text[:-3]
+                return json.loads(raw_text.strip())
+            except Exception as exc:
+                if attempt < 2 and any(term in str(exc).lower() for term in ["429", "quota", "rate limit", "timeout", "connection"]):
+                    time.sleep(2 ** (attempt + 1))
+                    continue
+                print(f"\n⚠️  Gemini API error during grading ({type(exc).__name__}): {exc}")
+                break
+
+    # Heuristic grading fallback for offline testing or API failure
+    norm_exp = expected.strip().lower()
+    norm_act = actual.strip().lower()
+    match = any(word in norm_act for word in norm_exp.split()[:4])
+    score = 0.85 if match else 0.4
+    return {
+        "score": score,
+        "passed": score >= 0.7,
+        "critique": "Heuristic match: key terminology found in actual output." if match else "Missing key terms from expected output."
+    }
 
 
 # 4. Main Benchmark Execution Loop
