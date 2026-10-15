@@ -68,9 +68,28 @@ class Settings(BaseSettings):
         elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-        # asyncpg requires ?ssl= instead of ?sslmode= (e.g. Neon Serverless Postgres URLs)
-        if "sslmode=" in url:
-            url = url.replace("sslmode=", "ssl=")
+        # For PostgreSQL/Neon URLs, asyncpg only accepts specific connect kwargs.
+        # libpq parameters (sslmode, channel_binding, target_session_attrs, etc.) crash asyncpg.connect().
+        if "postgresql+asyncpg://" in url and "?" in url:
+            from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+            parts = urlsplit(url)
+            query_dict = dict(parse_qsl(parts.query))
+
+            # Translate libpq sslmode to asyncpg ssl
+            if "sslmode" in query_dict:
+                query_dict["ssl"] = query_dict.pop("sslmode")
+
+            # Whitelist only parameters supported by asyncpg.connect()
+            allowed_asyncpg_params = {
+                "ssl",
+                "timeout",
+                "command_timeout",
+                "statement_cache_size",
+                "server_settings",
+            }
+            clean_query = {k: v for k, v in query_dict.items() if k in allowed_asyncpg_params}
+            url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(clean_query), parts.fragment))
 
         return url
 
