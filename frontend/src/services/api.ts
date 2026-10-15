@@ -30,7 +30,27 @@ const MAX_CLIENT_RETRIES = 3;
 // Response interceptor: Automated 3-attempt retry for idempotent requests & global error notification
 apiClient.interceptors.response.use(
   (response) => {
-    // If the server responded, mark server status as online
+    // If the server returned HTML instead of JSON (happens when VITE_API_URL is missing and SPA router returns index.html)
+    const contentType = response.headers["content-type"] || "";
+    if (
+      typeof response.data === "string" &&
+      (contentType.includes("text/html") || response.data.trim().startsWith("<!doctype") || response.data.trim().startsWith("<html"))
+    ) {
+      const uiStore = useUiStore();
+      const err = {
+        code: "BACKEND_NOT_CONFIGURED",
+        message:
+          "Frontend received HTML instead of API data. Please set VITE_API_URL in Cloudflare Pages settings to your Render backend URL (e.g. https://evalgen-backend.onrender.com/api/v1).",
+        trace_id: "client-config",
+        retryable: false,
+        retry_count: 0,
+        timestamp: new Date().toISOString(),
+      };
+      uiStore.showError(err);
+      return Promise.reject(err);
+    }
+
+    // If the server responded with valid data, mark server status as online
     const uiStore = useUiStore();
     if (uiStore.serverStatus !== "online") {
       uiStore.setServerStatus("online");
