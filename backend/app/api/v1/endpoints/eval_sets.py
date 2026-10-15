@@ -2,7 +2,7 @@ import csv
 import io
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Response, status
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.exceptions import ResourceNotFoundException
@@ -10,7 +10,6 @@ from app.models.eval_set import EvalSet, TestCase
 from app.schemas.eval_set import (
     EvalSetCreate,
     EvalSetResponse,
-    EvalSetUpdate,
 )
 from app.schemas.test_case import TestCaseCreate, TestCaseResponse
 

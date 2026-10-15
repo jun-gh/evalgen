@@ -1,7 +1,6 @@
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any
 from app.services.gemini import gemini_service
-from app.schemas.test_case import TestCaseResponse
 
 logger = logging.getLogger("evalgen.evaluator")
 

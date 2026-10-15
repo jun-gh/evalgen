@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -30,12 +32,12 @@ jobs:
 
       - name: Run Ruff Linter
         run: |
-          ruff check backend/app backend/tests
+          ruff check backend/app backend/tests --config backend/pyproject.toml
 
       - name: Run Pytest Test Suite
         env:
           ENVIRONMENT: testing
-          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
           PYTHONPATH=backend pytest backend/tests -v --durations=10
 
