@@ -161,7 +161,7 @@ API Documentation will be available at [http://localhost:8000/docs](http://local
 ```bash
 cd frontend
 
-# Install dependencies
+# Install all dependencies
 npm install
 
 # Start Vite development server
