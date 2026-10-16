@@ -1,7 +1,15 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import Navbar from "@/components/common/Navbar.vue";
 import ServerWakeupBanner from "@/components/common/ServerWakeupBanner.vue";
 import ErrorToast from "@/components/common/ErrorToast.vue";
+import { useEvalStore } from "@/stores/evalStore";
+
+const evalStore = useEvalStore();
+
+onMounted(() => {
+  evalStore.fetchConfig();
+});
 </script>
 
 <template>

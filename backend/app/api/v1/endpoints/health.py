@@ -27,5 +27,20 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         "database_type": "sqlite" if settings.is_sqlite else "postgresql",
         "database_status": db_status,
         "gemini_configured": bool(settings.GEMINI_API_KEY),
+        "gemini_model": settings.GEMINI_MODEL,
         "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
+@router.get("/config", summary="Public runtime configuration")
+async def get_config():
+    """
+    Returns public non-sensitive configuration, including the active Gemini model
+    read from .env, consumed dynamically by the frontend.
+    """
+    return {
+        "app_name": settings.APP_NAME,
+        "environment": settings.ENVIRONMENT,
+        "gemini_model": settings.GEMINI_MODEL,
+        "gemini_configured": bool(settings.GEMINI_API_KEY),
     }

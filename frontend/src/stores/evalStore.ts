@@ -7,9 +7,24 @@ import type { EvalSet, GenerationRequest } from "@/types";
 export const useEvalStore = defineStore("evals", () => {
   const evalSets = ref<EvalSet[]>([]);
   const currentEvalSet = ref<EvalSet | null>(null);
+  const activeModel = ref<string>(import.meta.env.VITE_GEMINI_MODEL || "gemini-3.8-flash");
   const isLoading = ref(false);
   const isGenerating = ref(false);
   const uiStore = useUiStore();
+
+  async function fetchConfig() {
+    try {
+      const cfg = await evalService.getConfig();
+      if (cfg && cfg.gemini_model) {
+        activeModel.value = cfg.gemini_model;
+      }
+    } catch (err) {
+      console.warn("Could not fetch remote config, using default/env model:", activeModel.value);
+    }
+  }
+
+  // Trigger initial config fetch
+  fetchConfig();
 
   async function loadEvalSets() {
     isLoading.value = true;
@@ -75,8 +90,10 @@ export const useEvalStore = defineStore("evals", () => {
   return {
     evalSets,
     currentEvalSet,
+    activeModel,
     isLoading,
     isGenerating,
+    fetchConfig,
     loadEvalSets,
     loadEvalSet,
     generateEvals,

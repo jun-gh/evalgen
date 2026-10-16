@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import { Sparkles, Layers, Cpu } from "lucide-vue-next";
+import { useEvalStore } from "@/stores/evalStore";
+
+const evalStore = useEvalStore();
 </script>
 
 <template>
@@ -16,6 +19,13 @@ import { Sparkles, Layers, Cpu } from "lucide-vue-next";
               EvalGen
               <span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
                 v0.1
+              </span>
+              <span
+                class="hidden md:inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-emerald-400 border border-slate-700 font-mono"
+                title="Active Model configured in backend .env"
+              >
+                <Cpu class="w-3 h-3 text-emerald-400" />
+                {{ evalStore.activeModel }}
               </span>
             </span>
           </div>

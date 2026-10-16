@@ -53,7 +53,15 @@ export interface GenerationResponse {
     target_capability: string;
     test_cases: TestCase[];
   };
+  model_used?: string;
   retry_count: number;
+}
+
+export interface AppConfig {
+  app_name: string;
+  environment: string;
+  gemini_model: string;
+  gemini_configured: boolean;
 }
 
 export interface ErrorDetail {

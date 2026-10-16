@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useEvalStore } from "@/stores/evalStore";
 import TestCaseTable from "@/components/evals/TestCaseTable.vue";
-import { Sparkles, ArrowLeft, RefreshCw, Layers, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-vue-next";
+import { Sparkles, ArrowLeft, RefreshCw, Layers, CheckCircle2, AlertTriangle, ShieldCheck, Cpu } from "lucide-vue-next";
 import type { GenerationRequest, GenerationResponse } from "@/types";
 
 const router = useRouter();
@@ -78,9 +78,15 @@ async function handleGenerate() {
         Back to Dashboard
       </button>
 
-      <div class="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2.5 py-1 rounded-full">
-        <ShieldCheck class="w-3.5 h-3.5" />
-        Max 3-Attempt Resilient Backoff Active
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2.5 py-1 rounded-full">
+          <Cpu class="w-3.5 h-3.5" />
+          Model: {{ evalStore.activeModel }}
+        </div>
+        <div class="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full">
+          <ShieldCheck class="w-3.5 h-3.5 text-emerald-400" />
+          3-Attempt Backoff
+        </div>
       </div>
     </div>
 
@@ -91,7 +97,7 @@ async function handleGenerate() {
         Synthetic Eval Set Generator
       </h1>
       <p class="text-sm text-slate-400 mt-1">
-        Prompt Google Gemini to produce targeted test cases, expected outputs, rubrics, and adversarial edge cases.
+        Prompt Google Gemini ({{ evalStore.activeModel }}) to produce targeted test cases, expected outputs, rubrics, and adversarial edge cases.
       </p>
     </div>
 
@@ -212,8 +218,9 @@ async function handleGenerate() {
       </div>
 
       <div class="border-t border-slate-800 pt-5 flex items-center justify-between">
-        <div class="text-xs text-slate-500">
-          Powered by Google Gemini 2.5 Flash
+        <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+          <Sparkles class="w-3.5 h-3.5 text-emerald-400" />
+          <span>Powered by Google Gemini ({{ evalStore.activeModel }})</span>
         </div>
 
         <button
@@ -223,7 +230,7 @@ async function handleGenerate() {
         >
           <RefreshCw v-if="evalStore.isGenerating" class="w-4 h-4 animate-spin" />
           <Sparkles v-else class="w-4 h-4" />
-          {{ evalStore.isGenerating ? "Synthesizing Evals..." : "Generate Eval Suite" }}
+          {{ evalStore.isGenerating ? `Synthesizing with ${evalStore.activeModel}...` : "Generate Eval Suite" }}
         </button>
       </div>
     </form>
@@ -235,8 +242,12 @@ async function handleGenerate() {
           <h2 class="text-lg font-bold text-white flex items-center gap-2">
             <CheckCircle2 class="w-5 h-5 text-emerald-400" />
             Generated Test Suite Preview
+            <span class="text-xs font-mono font-normal text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+              <Cpu class="w-3 h-3" />
+              {{ generatedResult.model_used || evalStore.activeModel }}
+            </span>
           </h2>
-          <p class="text-xs text-slate-400">
+          <p class="text-xs text-slate-400 mt-0.5">
             {{ generatedResult.dataset.test_cases.length }} test cases synthesized.
           </p>
         </div>
