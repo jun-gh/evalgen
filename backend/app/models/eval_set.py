@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from sqlalchemy import String, Text, DateTime, Float, Integer, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from app.config import settings
 from app.core.database import Base
 
 
@@ -59,7 +60,7 @@ class EvalRun(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
     eval_set_id: Mapped[str] = mapped_column(String(36), ForeignKey("eval_sets.id"), nullable=False)
-    model_tested: Mapped[str] = mapped_column(String(100), default="gemini-2.5-flash")
+    model_tested: Mapped[str] = mapped_column(String(100), default=lambda: settings.GEMINI_MODEL)
     system_prompt: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="pending")
     overall_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

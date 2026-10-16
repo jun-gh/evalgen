@@ -1,10 +1,26 @@
 import { apiClient } from "./api";
-import type { EvalSet, GenerationRequest, GenerationResponse } from "@/types";
+import type { EvalSet, GenerationRequest, GenerationResponse, AppConfig } from "@/types";
 
 export const evalService = {
   async getHealth() {
     const res = await apiClient.get("/health");
     return res.data;
+  },
+
+  async getConfig(): Promise<AppConfig> {
+    try {
+      const res = await apiClient.get<AppConfig>("/config");
+      return res.data;
+    } catch {
+      // Fallback to /health which also contains gemini_model
+      const healthRes = await apiClient.get("/health");
+      return {
+        app_name: healthRes.data.app || "EvalGen",
+        environment: healthRes.data.environment || "production",
+        gemini_model: healthRes.data.gemini_model || "gemini-3.8-flash",
+        gemini_configured: Boolean(healthRes.data.gemini_configured),
+      };
+    }
   },
 
   async listEvalSets(domain?: string): Promise<EvalSet[]> {

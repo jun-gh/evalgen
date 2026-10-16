@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useEvalStore } from "@/stores/evalStore";
 import { evalService } from "@/services/evalService";
 import TestCaseTable from "@/components/evals/TestCaseTable.vue";
-import { ArrowLeft, FileDown, Trash2, RefreshCw, Layers } from "lucide-vue-next";
+import { ArrowLeft, FileDown, Trash2, RefreshCw, Layers, Cpu } from "lucide-vue-next";
 
 const route = useRoute();
 const router = useRouter();
@@ -51,12 +51,16 @@ async function handleDelete() {
       <!-- Header Banner -->
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="space-y-2">
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <span class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               {{ evalStore.currentEvalSet.domain }}
             </span>
             <span class="text-xs text-slate-500 uppercase tracking-wider">
               {{ evalStore.currentEvalSet.eval_type }}
+            </span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 inline-flex items-center gap-1">
+              <Cpu class="w-3 h-3 text-emerald-400" />
+              Target Model: {{ evalStore.activeModel }}
             </span>
           </div>
 

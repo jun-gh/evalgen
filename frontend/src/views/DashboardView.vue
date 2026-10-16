@@ -45,7 +45,7 @@ function getDownloadUrl(id: string) {
           AI Evaluation Sets
         </h1>
         <p class="mt-2 text-sm text-slate-400 leading-relaxed">
-          Design, synthesize, and benchmark rigorous evaluation test suites for LLM applications. Powered by Google Gemini with 3-attempt resilient backoff and MCP context tools.
+          Design, synthesize, and benchmark rigorous evaluation test suites for LLM applications. Powered by Google Gemini ({{ evalStore.activeModel }}) with 3-attempt resilient backoff and MCP context tools.
         </p>
 
         <div class="mt-6 flex flex-wrap gap-3">
@@ -96,7 +96,7 @@ function getDownloadUrl(id: string) {
       <Layers class="w-10 h-10 text-slate-600 mx-auto mb-3" />
       <h3 class="text-base font-semibold text-slate-300">No evaluation sets found</h3>
       <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-        Get started by generating your first synthetic evaluation suite with Google Gemini.
+        Get started by generating your first synthetic evaluation suite with Google Gemini ({{ evalStore.activeModel }}).
       </p>
       <RouterLink
         to="/generate"

@@ -58,5 +58,6 @@ async def generate_synthetic_evals(
         eval_set_id=eval_set_id,
         message=f"Successfully generated {len(dataset.test_cases)} evaluation test cases.",
         dataset=dataset,
+        model_used=gemini_service.model_name,
         retry_count=retry_count,
     )
