@@ -1,10 +1,64 @@
-# EvalGen: AI Evaluation Set Generator
+# EvalGen: AI Evaluation & Benchmarking Studio
 
-**EvalGen** is an open-source, full-stack AI evaluation suite generator designed for mastering **AI Evals**, synthetic test generation, structured LLM outputs, and **zero-cost cloud-native deployments**.
+**EvalGen** is an open-source, full-stack AI evaluation and benchmarking studio designed for mastering **AI Evals**, synthetic test generation, in-browser and CLI LLM-as-a-judge benchmarking, structured LLM outputs, and **zero-cost cloud-native deployments**.
 
 ---
 
-## 1. System Architecture
+## 1. The Iterative Evals-Driven Development (Prompt TDD) Cycle
+
+AI engineering teams use EvalGen to move away from unscientific **"vibe checks"** (tweaking prompts and hoping nothing broke) to disciplined **Test-Driven Development (TDD) for LLMs**.
+
+```
+┌────────────────────────────────────────────────────────┐
+│ 1. CREATE GOLDEN BENCHMARK                             │
+│    Synthesize 10–20 domain test cases with             │
+│    strict rubrics & edge cases, or upload existing CSV.│
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ 2. DRAFT 1: RUN INITIAL BENCHMARK                      │
+│    Input your candidate System Prompt in the browser UI│
+│    and click "Run Benchmark".                          │
+│    Example Result: 60% Passed (3 Passed / 2 Failed)    │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ 3. DIAGNOSE THE 40% FAILURES                           │
+│    Filter by "Failed" in the interactive dashboard:    │
+│    • Compare Candidate Output vs Golden Expected Output│
+│    • Read LLM Judge Critique:                          │
+│      "Failed because model hallucinated an exception   │
+│       to the return policy when pressured."            │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ 4. TWEAK SYSTEM PROMPT & RE-RUN                        │
+│    Add rule: "Never make exceptions to 14-day policy." │
+│    Click "Run Benchmark" again.                        │
+│    Example Result: 85% or 100% Passed!                 │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│ 5. CONTINUOUS REGRESSION & MODEL COMPARISON            │
+│    • Compare model performance across foundation LLMs  │
+│    • Run in GitHub Actions CI/CD before PR merges      │
+└────────────────────────────────────────────────────────┘
+```
+
+### The 4-Step Production Workflow
+
+1. **Golden Test Suite Creation**: Define a domain (*Customer Support, Finance, Coding, Healthcare, Tool Calling, Reasoning*) and let Gemini synthesize diverse happy-path, edge-case, and adversarial prompts with golden outputs and grading rubrics.
+2. **Initial Baseline Run**: Navigate to the **Benchmark Studio** (`/benchmark`). Enter your application's current system prompt and run the test suite. Receive an objective accuracy baseline (e.g. 60% pass rate).
+3. **Root-Cause Critique Inspection**: Expand failed cases to view side-by-side output comparisons and read why the LLM Judge penalized the response.
+4. **Prompt Hardening & Verification**: Update your system instructions to patch the failure mode and re-benchmark. Watch your score increase with quantifiable proof.
+
+---
+
+## 2. System Architecture
 
 ```
                     +-------------------------------------------------+
@@ -44,7 +98,7 @@
 
 ---
 
-## 2. Tech Stack & Zero-Cost Cloud Strategy
+## 3. Tech Stack & Zero-Cost Cloud Strategy
 
 | Component | Technology | Zero-Cost Deployment Rationale |
 | :--- | :--- | :--- |
@@ -61,14 +115,14 @@
 
 ---
 
-## 3. Error Handling & Resilience Best Practices
+## 4. Error Handling & Resilience Best Practices
 
-### 3.1 Maximum 3-Attempt Exponential Backoff
+### 4.1 Maximum 3-Attempt Exponential Backoff
 All transient external interactions (LLM generation, rate limits, network resets) strictly enforce a **maximum retry limit of 3**:
 - **Backend**: Decorated with `tenacity` exponential backoff with jitter (`1s`, `2s`, `4s` + jitter). If all 3 attempts fail, a typed `RateLimitExceededException` or `LLMGenerationException` is raised.
 - **Frontend**: Axios interceptors automatically retry idempotent requests up to 3 times before displaying actionable failure cards.
 
-### 3.2 Displaying Errors to the UI for Best UX
+### 4.2 Displaying Errors to the UI for Best UX
 - **Standardized Error Envelope**: All API errors return a consistent JSON schema:
   ```json
   {
@@ -88,7 +142,7 @@ All transient external interactions (LLM generation, rate limits, network resets
 
 ---
 
-## 4. Repository Structure
+## 5. Repository Structure
 
 ```
 evalgen/
@@ -129,13 +183,13 @@ evalgen/
 
 ---
 
-## 5. Local Development Quickstart
+## 6. Local Development Quickstart
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 20+ and npm
 
-### 5.1 Backend Setup
+### 6.1 Backend Setup
 ```bash
 cd backend
 
@@ -155,7 +209,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 API Documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-### 5.2 Frontend Setup
+### 6.2 Frontend Setup
 ```bash
 cd frontend
 
@@ -169,7 +223,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 6. Running Tests
+## 7. Running Tests
 
 ```bash
 cd backend
@@ -177,33 +231,38 @@ source .venv/bin/activate
 pytest tests -v
 ```
 
-Tests include verification that transient rate limit errors retry **exactly 3 times** before aborting.
+Tests include verification of synthetic test generation, benchmark execution, CSV import, and the **maximum 3 retries** resilience.
 
 ---
 
-## 7. Evaluating Exported Datasets (LLM-as-a-Judge Benchmark)
+## 8. Running Benchmarks (In-Browser Studio & CLI)
 
-EvalGen includes a standalone benchmark evaluation suite in `evals/run_evals.py`. It automatically loads your `GEMINI_API_KEY` and `GEMINI_MODEL` (`gemini-3.8-flash`) from `backend/.env`, executes test prompts through your application, and uses Gemini as an impartial judge to score responses against golden answers and rubrics.
+EvalGen supports two ways to benchmark your prompts and LLM applications against golden test suites:
 
-### Option A: Evaluate Default Dataset
-Run the benchmark on the bundled baseline dataset (`evals/dataset.csv`):
+### Option A: In-Browser Benchmark Studio (Interactive Web UI)
+1. Navigate to **Run Benchmark** (`/benchmark`) in the top navigation bar.
+2. Select an existing evaluation dataset or upload an exported `.csv` file.
+3. Enter your candidate **System Instruction / Target Prompt** under test (or select a preset like *Strict Policy Grounding*).
+4. Click **Run Benchmark**.
+5. View real-time results:
+   - **Pass Rate %** and **Average Rubric Score**.
+   - Side-by-side view comparing **Candidate Actual Output** vs **Reference Golden Output**.
+   - Detailed **LLM-as-a-Judge Feedback** highlighting why each case passed or failed.
+
+### Option B: CLI Benchmark Runner (CI/CD Automated Script)
+EvalGen includes a standalone benchmark evaluation harness in `evals/run_evals.py`. It reads your `GEMINI_API_KEY` and `GEMINI_MODEL` from `backend/.env`, executes test prompts, and outputs a formatted terminal scorecard:
+
 ```bash
-backend/.venv/bin/python evals/run_evals.py
-```
-
-### Option B: Evaluate Exported CSV File (Sample Test)
-Export any evaluation dataset from the EvalGen web dashboard and pass the downloaded CSV path directly to the runner:
-```bash
-# Example with downloaded export from the UI
+# Evaluate an exported CSV file downloaded from the dashboard
 backend/.venv/bin/python evals/run_evals.py ~/Downloads/customer-support-evals.csv
 
-# Or specify any local CSV in your workspace
+# Or evaluate the default baseline dataset
 backend/.venv/bin/python evals/run_evals.py evals/dataset.csv
 ```
 
-#### Sample Output:
+#### Sample CLI Output:
 ```text
-✨ Using live Google Gemini (gemini-3.8-flash) for evaluation.
+✨ Using live Google Gemini (gemini-3.7-flash) for evaluation.
 
 🚀 Running Benchmark Suite: customer-support-evals.csv
 ================================================================================
@@ -227,7 +286,7 @@ backend/.venv/bin/python evals/run_evals.py evals/dataset.csv
 
 ---
 
-## 8. Zero-Cost Cloud Deployment Runbook
+## 9. Zero-Cost Cloud Deployment Runbook
 
 ### Step 1: Provision Neon Serverless Postgres
 1. Go to [Neon.tech](https://neon.tech) and create a free project.

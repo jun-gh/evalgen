@@ -74,6 +74,41 @@ export interface ErrorDetail {
   timestamp: string;
 }
 
+export interface BenchmarkRunRequest {
+  system_prompt?: string;
+  model_name?: string;
+}
+
+export interface EvaluationResult {
+  id: string;
+  test_case_id: string;
+  prompt_input?: string;
+  expected_output?: string;
+  context?: string | null;
+  rubric?: string | null;
+  difficulty?: string;
+  actual_output?: string;
+  passed: boolean;
+  score: number;
+  feedback?: string;
+  latency_ms?: number;
+  created_at: string;
+}
+
+export interface EvalRun {
+  id: string;
+  eval_set_id: string;
+  model_tested: string;
+  system_prompt?: string;
+  status: string;
+  overall_score?: number;
+  passed_count: number;
+  total_count: number;
+  accuracy_rate: number;
+  created_at: string;
+  results: EvaluationResult[];
+}
+
 export interface ErrorEnvelope {
   success: false;
   error: ErrorDetail;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
-import { Sparkles, Layers, Cpu } from "lucide-vue-next";
+import { Sparkles, Layers, Cpu, PlayCircle } from "lucide-vue-next";
 import { useEvalStore } from "@/stores/evalStore";
 
 const evalStore = useEvalStore();
@@ -41,6 +41,17 @@ const evalStore = useEvalStore();
           <span class="flex items-center gap-1.5">
             <Layers class="w-4 h-4" />
             Eval Sets
+          </span>
+        </RouterLink>
+
+        <RouterLink
+          to="/benchmark"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium transition"
+          :class="$route.path.startsWith('/benchmark') ? 'bg-slate-800 text-emerald-400 border border-emerald-800/40' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+        >
+          <span class="flex items-center gap-1.5">
+            <PlayCircle class="w-4 h-4 text-emerald-400" />
+            Run Benchmark
           </span>
         </RouterLink>
 

@@ -96,7 +96,16 @@ apiClient.interceptors.response.use(
       timestamp: new Date().toISOString(),
     };
 
-    if (error.response?.data?.error) {
+    if (error.code === "ECONNABORTED" || error.message?.toLowerCase().includes("timeout")) {
+      errorDetail = {
+        code: "TIMEOUT_ERROR",
+        message: "The request timed out. Generating or evaluating multiple test cases with Gemini took longer than the client timeout. Please retry or test with fewer cases.",
+        trace_id: (config?.headers?.["X-Trace-ID"] as string) || "client-timeout",
+        retryable: true,
+        retry_count: config?._retryCount || 0,
+        timestamp: new Date().toISOString(),
+      };
+    } else if (error.response?.data?.error) {
       errorDetail = error.response.data.error;
     } else if (error.response?.data?.detail) {
       errorDetail.message =

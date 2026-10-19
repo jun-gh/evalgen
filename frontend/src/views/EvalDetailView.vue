@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useEvalStore } from "@/stores/evalStore";
 import { evalService } from "@/services/evalService";
 import TestCaseTable from "@/components/evals/TestCaseTable.vue";
-import { ArrowLeft, FileDown, Trash2, RefreshCw, Layers, Cpu } from "lucide-vue-next";
+import { ArrowLeft, FileDown, Trash2, RefreshCw, Layers, Cpu, PlayCircle } from "lucide-vue-next";
 
 const route = useRoute();
 const router = useRouter();
@@ -77,7 +77,15 @@ async function handleDelete() {
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <RouterLink
+            :to="`/benchmark?id=${evalSetId}`"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-950 transition"
+          >
+            <PlayCircle class="w-4 h-4" />
+            Run Benchmark
+          </RouterLink>
+
           <a
             :href="getDownloadUrl()"
             download

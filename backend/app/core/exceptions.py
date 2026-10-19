@@ -71,6 +71,17 @@ class ResourceNotFoundException(EvalGenException):
         )
 
 
+class ValidationException(EvalGenException):
+    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="VALIDATION_ERROR",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            details=details,
+            retryable=False,
+        )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """Register uniform error handlers for all exceptions."""
 
