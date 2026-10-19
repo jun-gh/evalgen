@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useUiStore } from "@/stores/uiStore";
+import { getSessionId } from "@/services/session";
 import type { ErrorEnvelope } from "@/types";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1";
@@ -12,10 +13,13 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor: Attach client trace ID
+// Request interceptor: Attach client trace ID and anonymous persistent session ID
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (!config.headers["X-Trace-ID"]) {
     config.headers["X-Trace-ID"] = `client-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  }
+  if (!config.headers["X-Session-ID"]) {
+    config.headers["X-Session-ID"] = getSessionId();
   }
   return config;
 });

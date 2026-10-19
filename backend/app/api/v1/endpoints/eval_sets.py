@@ -1,11 +1,12 @@
 import csv
 import io
 from typing import List, Optional
-from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.exceptions import ResourceNotFoundException, ValidationException
+from app.core.session import get_session_id, get_session_cutoff, check_session_quota
 from app.models.eval_set import EvalSet, TestCase, EvalRun
 from app.schemas.eval_run import BenchmarkRunRequest, EvalRunResponse, EvaluationResultResponse
 from app.schemas.eval_set import (
@@ -20,12 +21,20 @@ router = APIRouter()
 
 @router.get("", response_model=List[EvalSetResponse])
 async def list_eval_sets(
+    request: Request,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     domain: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(EvalSet)
+    session_id = get_session_id(request)
+    cutoff = get_session_cutoff()
+
+    query = (
+        select(EvalSet)
+        .where(EvalSet.session_id == session_id)
+        .where(EvalSet.created_at >= cutoff)
+    )
     if domain:
         query = query.where(EvalSet.domain == domain)
     query = query.offset(skip).limit(limit).order_by(EvalSet.created_at.desc())
@@ -43,9 +52,14 @@ async def list_eval_sets(
 @router.post("", response_model=EvalSetResponse, status_code=status.HTTP_201_CREATED)
 async def create_eval_set(
     payload: EvalSetCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    session_id = get_session_id(request)
+    await check_session_quota(db, session_id)
+
     eval_set = EvalSet(
+        session_id=session_id,
         title=payload.title,
         description=payload.description,
         domain=payload.domain,
@@ -79,9 +93,18 @@ async def create_eval_set(
 @router.get("/{eval_set_id}", response_model=EvalSetResponse)
 async def get_eval_set(
     eval_set_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(EvalSet).where(EvalSet.id == eval_set_id)
+    session_id = get_session_id(request)
+    cutoff = get_session_cutoff()
+
+    query = (
+        select(EvalSet)
+        .where(EvalSet.id == eval_set_id)
+        .where(EvalSet.session_id == session_id)
+        .where(EvalSet.created_at >= cutoff)
+    )
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
@@ -95,9 +118,11 @@ async def get_eval_set(
 @router.delete("/{eval_set_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_eval_set(
     eval_set_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(EvalSet).where(EvalSet.id == eval_set_id)
+    session_id = get_session_id(request)
+    query = select(EvalSet).where(EvalSet.id == eval_set_id, EvalSet.session_id == session_id)
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
@@ -112,9 +137,17 @@ async def delete_eval_set(
 async def add_test_case(
     eval_set_id: str,
     payload: TestCaseCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(EvalSet).where(EvalSet.id == eval_set_id)
+    session_id = get_session_id(request)
+    cutoff = get_session_cutoff()
+    query = (
+        select(EvalSet)
+        .where(EvalSet.id == eval_set_id)
+        .where(EvalSet.session_id == session_id)
+        .where(EvalSet.created_at >= cutoff)
+    )
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
@@ -139,9 +172,17 @@ async def add_test_case(
 @router.get("/{eval_set_id}/export/csv")
 async def export_csv(
     eval_set_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(EvalSet).where(EvalSet.id == eval_set_id)
+    session_id = get_session_id(request)
+    cutoff = get_session_cutoff()
+    query = (
+        select(EvalSet)
+        .where(EvalSet.id == eval_set_id)
+        .where(EvalSet.session_id == session_id)
+        .where(EvalSet.created_at >= cutoff)
+    )
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
@@ -214,11 +255,15 @@ def _build_eval_run_response(eval_run: EvalRun, eval_set: Optional[EvalSet] = No
 
 @router.post("/import-csv", response_model=EvalSetResponse, status_code=status.HTTP_201_CREATED)
 async def import_csv(
+    request: Request,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ):
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise ValidationException("Only .csv files are supported for import.")
+
+    session_id = get_session_id(request)
+    await check_session_quota(db, session_id)
 
     contents = await file.read()
     try:
@@ -276,6 +321,7 @@ async def import_csv(
     clean_name = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
     title = f"Imported: {clean_name}"
     eval_set = EvalSet(
+        session_id=session_id,
         title=title,
         description=f"Imported from {file.filename} with {len(test_cases_data)} test cases.",
         domain="General QA",
@@ -308,10 +354,18 @@ async def import_csv(
 @router.post("/{eval_set_id}/run", response_model=EvalRunResponse, status_code=status.HTTP_200_OK)
 async def run_eval_set_benchmark(
     eval_set_id: str,
+    request: Request,
     payload: BenchmarkRunRequest = BenchmarkRunRequest(),
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(EvalSet).where(EvalSet.id == eval_set_id)
+    session_id = get_session_id(request)
+    cutoff = get_session_cutoff()
+    query = (
+        select(EvalSet)
+        .where(EvalSet.id == eval_set_id)
+        .where(EvalSet.session_id == session_id)
+        .where(EvalSet.created_at >= cutoff)
+    )
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
@@ -331,9 +385,11 @@ async def run_eval_set_benchmark(
 @router.get("/{eval_set_id}/runs", response_model=List[EvalRunResponse])
 async def list_eval_set_runs(
     eval_set_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(EvalSet).where(EvalSet.id == eval_set_id)
+    session_id = get_session_id(request)
+    query = select(EvalSet).where(EvalSet.id == eval_set_id, EvalSet.session_id == session_id)
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
@@ -349,16 +405,20 @@ async def list_eval_set_runs(
 @router.get("/runs/{run_id}", response_model=EvalRunResponse)
 async def get_eval_run_detail(
     run_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    session_id = get_session_id(request)
     run_query = select(EvalRun).where(EvalRun.id == run_id)
     run_res = await db.execute(run_query)
     eval_run = run_res.scalar_one_or_none()
     if not eval_run:
         raise ResourceNotFoundException("EvalRun", run_id)
 
-    set_query = select(EvalSet).where(EvalSet.id == eval_run.eval_set_id)
+    set_query = select(EvalSet).where(EvalSet.id == eval_run.eval_set_id, EvalSet.session_id == session_id)
     set_res = await db.execute(set_query)
     eval_set = set_res.scalar_one_or_none()
+    if not eval_set:
+        raise ResourceNotFoundException("EvalSet", eval_run.eval_set_id)
 
     return _build_eval_run_response(eval_run, eval_set)

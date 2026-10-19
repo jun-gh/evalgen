@@ -115,14 +115,36 @@ AI engineering teams use EvalGen to move away from unscientific **"vibe checks"*
 
 ---
 
-## 4. Error Handling & Resilience Best Practices
+## 4. Session-Based Dataset Isolation & Runtime Quotas (Zero Login)
 
-### 4.1 Maximum 3-Attempt Exponential Backoff
+EvalGen provides frictionless **anonymous session scoping** without requiring user registration or login:
+- **Zero-Login Workspace**: Every visitor receives a persistent session token (`X-Session-ID` attached automatically via Axios request interceptors and stored in browser `localStorage`).
+- **Complete Privacy**: Visitors only view, test, and benchmark datasets generated or imported during their own active session. Other sessions' datasets remain strictly isolated (`HTTP 404`).
+- **Automatic Schema Migration**: The backend startup lifecycle (`init_db`) automatically checks database schemas and provisions the `session_id` column on SQLite and PostgreSQL without manual SQL scripts or downtime.
+
+### Runtime Environment Limits & Quotas
+All session quotas and sample bounds are governed dynamically via environment variables in `backend/.env` (or Render's Environment dashboard) and broadcast via `GET /api/v1/config`:
+
+| Environment Variable | Default | Purpose & Dynamic UI Behavior |
+| :--- | :--- | :--- |
+| `MAX_DATASETS_PER_SESSION` | `5` | Maximum active datasets allowed per session. Reaching this limit displays a warning badge and halts auto-saving until an older set is removed. |
+| `SESSION_EXPIRY_DAYS` | `7` | Lifespan of session datasets (1 week). Queries automatically enforce a rolling cutoff (`created_at >= now - expiry_days`). |
+| `MAX_SAMPLE_COUNT` | `10` | Upper ceiling for the test generation slider. Validated both client-side and server-side via Pydantic validators. |
+| `DEFAULT_SAMPLE_COUNT` | `3` | Initial default test case count populated on the generator form. |
+
+> [!TIP]
+> **Zero Git Commits / Zero Frontend Redeploys**: Updating any of these environment variables on your backend host (Render) immediately updates frontend sliders, bounds, and backend enforcement upon container reboot—**no frontend rebuild or git commit is required**.
+
+---
+
+## 5. Error Handling & Resilience Best Practices
+
+### 5.1 Maximum 3-Attempt Exponential Backoff
 All transient external interactions (LLM generation, rate limits, network resets) strictly enforce a **maximum retry limit of 3**:
 - **Backend**: Decorated with `tenacity` exponential backoff with jitter (`1s`, `2s`, `4s` + jitter). If all 3 attempts fail, a typed `RateLimitExceededException` or `LLMGenerationException` is raised.
 - **Frontend**: Axios interceptors automatically retry idempotent requests up to 3 times before displaying actionable failure cards.
 
-### 4.2 Displaying Errors to the UI for Best UX
+### 5.2 Displaying Errors to the UI for Best UX
 - **Standardized Error Envelope**: All API errors return a consistent JSON schema:
   ```json
   {
@@ -142,7 +164,7 @@ All transient external interactions (LLM generation, rate limits, network resets
 
 ---
 
-## 5. Repository Structure
+## 6. Repository Structure
 
 ```
 evalgen/
@@ -183,13 +205,13 @@ evalgen/
 
 ---
 
-## 6. Local Development Quickstart
+## 7. Local Development Quickstart
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 20+ and npm
 
-### 6.1 Backend Setup
+### 7.1 Backend Setup
 ```bash
 cd backend
 
@@ -209,7 +231,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 API Documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-### 6.2 Frontend Setup
+### 7.2 Frontend Setup
 ```bash
 cd frontend
 
@@ -223,7 +245,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 7. Running Tests
+## 8. Running Tests
 
 ```bash
 cd backend
@@ -235,7 +257,7 @@ Tests include verification of synthetic test generation, benchmark execution, CS
 
 ---
 
-## 8. Running Benchmarks (In-Browser Studio & CLI)
+## 9. Running Benchmarks (In-Browser Studio & CLI)
 
 EvalGen supports two ways to benchmark your prompts and LLM applications against golden test suites:
 
@@ -286,7 +308,7 @@ backend/.venv/bin/python evals/run_evals.py evals/dataset.csv
 
 ---
 
-## 9. Zero-Cost Cloud Deployment Runbook
+## 10. Zero-Cost Cloud Deployment Runbook
 
 ### Step 1: Provision Neon Serverless Postgres
 1. Go to [Neon.tech](https://neon.tech) and create a free project.
