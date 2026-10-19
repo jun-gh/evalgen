@@ -51,10 +51,12 @@ function getDownloadUrl(id: string) {
         <div class="mt-6 flex flex-wrap gap-3">
           <RouterLink
             to="/generate"
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm shadow-lg shadow-emerald-950 transition"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition"
+            :class="evalStore.isQuotaFull ? 'bg-slate-800 text-slate-400 border border-amber-500/30 hover:border-amber-500/60' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950'"
           >
-            <Sparkles class="w-4 h-4" />
-            Synthesize New Eval Set
+            <Sparkles class="w-4 h-4" :class="evalStore.isQuotaFull ? 'text-amber-400' : 'text-white'" />
+            <span>Synthesize New Eval Set</span>
+            <span v-if="evalStore.isQuotaFull" class="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Quota Full</span>
           </RouterLink>
 
           <RouterLink
@@ -76,6 +78,18 @@ function getDownloadUrl(id: string) {
       </div>
     </div>
 
+    <!-- Quota Warning Banner if limit reached -->
+    <div
+      v-if="evalStore.isQuotaFull"
+      class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3 text-xs text-amber-200"
+    >
+      <Database class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+      <div>
+        <span class="font-semibold text-amber-300">Session Dataset Quota Full:</span>
+        You have reached your limit of {{ evalStore.maxDatasets }} datasets for this anonymous session (lifespan: {{ evalStore.sessionExpiryDays }} days). To synthesize or import a new evaluation set, please delete an older one below.
+      </div>
+    </div>
+
     <!-- Filter & Statistics -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="flex items-center space-x-2">
@@ -89,8 +103,11 @@ function getDownloadUrl(id: string) {
         </select>
       </div>
 
-      <div class="text-xs text-slate-400">
-        Total Datasets: <span class="font-bold text-white">{{ evalStore.evalSets.length }}</span>
+      <div class="flex items-center gap-3 text-xs text-slate-400">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 font-mono text-[11px]">
+          Session: <strong class="text-white">{{ evalStore.evalSets.length }} / {{ evalStore.maxDatasets }}</strong> datasets
+          <span class="text-slate-500">({{ evalStore.sessionExpiryDays }}d lifespan)</span>
+        </span>
       </div>
     </div>
 

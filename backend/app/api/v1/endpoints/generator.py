@@ -1,7 +1,8 @@
 import logging
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
+from app.core.session import get_session_id, check_session_quota
 from app.models.eval_set import EvalSet, TestCase
 from app.schemas.generation import GenerationRequest, GenerationResponse
 from app.services.gemini import gemini_service
@@ -18,17 +19,24 @@ router = APIRouter()
 )
 async def generate_synthetic_evals(
     request: GenerationRequest,
+    http_request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """
     Synthesize high-fidelity test cases, rubrics, and edge cases with Gemini.
     Decorated with a maximum 3-attempt exponential backoff retry.
+    Validates session quota prior to synthesis if auto_save is enabled.
     """
+    session_id = get_session_id(http_request)
+    if request.auto_save:
+        await check_session_quota(db, session_id)
+
     dataset, retry_count = await gemini_service.generate_eval_set(request)
 
     eval_set_id = None
     if request.auto_save:
         eval_set = EvalSet(
+            session_id=session_id,
             title=dataset.title,
             description=dataset.description,
             domain=dataset.domain,

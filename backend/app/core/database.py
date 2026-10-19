@@ -65,6 +65,22 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
+    """Initialize database tables and run lightweight column migrations."""
+    from sqlalchemy import text
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        # Ensure session_id column exists on existing tables (SQLite and PostgreSQL)
+        try:
+            if settings.is_sqlite:
+                result = await conn.execute(text("PRAGMA table_info(eval_sets)"))
+                columns = [row[1] for row in result.fetchall()]
+                if "session_id" not in columns:
+                    await conn.execute(text("ALTER TABLE eval_sets ADD COLUMN session_id VARCHAR(64) DEFAULT ''"))
+            else:
+                await conn.execute(
+                    text("ALTER TABLE eval_sets ADD COLUMN IF NOT EXISTS session_id VARCHAR(64) DEFAULT ''")
+                )
+        except Exception:
+            # Table might be freshly created by create_all where session_id already exists
+            pass

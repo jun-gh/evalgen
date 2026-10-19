@@ -29,6 +29,7 @@ class EvalSetUpdate(BaseModel):
 
 class EvalSetResponse(EvalSetBase):
     id: str
+    session_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     test_cases: List[TestCaseResponse] = Field(default_factory=list)

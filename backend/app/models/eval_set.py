@@ -15,6 +15,7 @@ class EvalSet(Base):
     __tablename__ = "eval_sets"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(String(64), index=True, default="", server_default="")
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     domain: Mapped[str] = mapped_column(String(100), default="General QA")

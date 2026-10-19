@@ -1,5 +1,6 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from app.config import settings
 
 
 class GenerationRequest(BaseModel):
@@ -11,10 +12,19 @@ class GenerationRequest(BaseModel):
     )
     domain: str = Field(default="General QA", description="Domain of application")
     eval_type: str = Field(default="rag_qa", description="rag_qa, reasoning, tool_calling, safety, edge_cases")
-    num_samples: int = Field(default=5, ge=1, le=25, description="Number of synthetic test cases to generate")
+    num_samples: int = Field(default=3, ge=1, description="Number of synthetic test cases to generate")
     include_adversarial: bool = Field(default=True, description="Whether to include edge and jailbreak/adversarial cases")
     context_documents: Optional[List[str]] = Field(default=None, description="Optional reference documentation for RAG evals")
     auto_save: bool = Field(default=True, description="Automatically persist created EvalSet to database")
+
+    @field_validator("num_samples")
+    @classmethod
+    def validate_num_samples(cls, v: int) -> int:
+        if v > settings.MAX_SAMPLE_COUNT:
+            raise ValueError(
+                f"num_samples ({v}) exceeds configured maximum of {settings.MAX_SAMPLE_COUNT}."
+            )
+        return v
 
 
 class GeneratedTestCase(BaseModel):

@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     )
     GEMINI_MODEL: str = "gemini-3.8-flash"
 
+    # Session & Quota limits
+    MAX_DATASETS_PER_SESSION: int = 5
+    SESSION_EXPIRY_DAYS: int = 7
+    MAX_SAMPLE_COUNT: int = 10
+    DEFAULT_SAMPLE_COUNT: int = 3
+
     # CORS configuration
     CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:5173",

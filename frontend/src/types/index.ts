@@ -62,6 +62,10 @@ export interface AppConfig {
   environment: string;
   gemini_model: string;
   gemini_configured: boolean;
+  max_datasets_per_session: number;
+  session_expiry_days: number;
+  max_sample_count: number;
+  default_sample_count: number;
 }
 
 export interface ErrorDetail {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useEvalStore } from "@/stores/evalStore";
 import TestCaseTable from "@/components/evals/TestCaseTable.vue";
-import { Sparkles, ArrowLeft, RefreshCw, Layers, CheckCircle2, AlertTriangle, ShieldCheck, Cpu } from "lucide-vue-next";
+import { Sparkles, ArrowLeft, RefreshCw, Layers, CheckCircle2, AlertTriangle, ShieldCheck, Cpu, Database } from "lucide-vue-next";
 import type { GenerationRequest, GenerationResponse } from "@/types";
 
 const router = useRouter();
@@ -15,10 +15,19 @@ const form = ref<GenerationRequest>({
     "Evaluate an e-commerce customer support bot on its ability to answer refund, shipment, and warranty questions strictly using ground-truth company policies. Must penalize hallucinations and unsupported claims.",
   domain: "Customer Support",
   eval_type: "rag_qa",
-  num_samples: 5,
+  num_samples: evalStore.defaultSampleCount || 3,
   include_adversarial: true,
   auto_save: true,
 });
+
+watch(
+  () => evalStore.defaultSampleCount,
+  (val) => {
+    if (val && form.value.num_samples === 3) {
+      form.value.num_samples = val;
+    }
+  }
+);
 
 const generatedResult = ref<GenerationResponse | null>(null);
 
@@ -183,14 +192,15 @@ async function handleGenerate() {
           </div>
 
           <div>
-            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
-              Sample Count ({{ form.num_samples }})
+            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5 flex justify-between items-center">
+              <span>Sample Count</span>
+              <span class="text-emerald-400 font-mono">{{ form.num_samples }} / {{ evalStore.maxSampleCount }} max</span>
             </label>
             <input
               v-model.number="form.num_samples"
               type="range"
               min="1"
-              max="20"
+              :max="evalStore.maxSampleCount"
               class="w-full accent-emerald-500 mt-2"
             />
           </div>
@@ -215,6 +225,18 @@ async function handleGenerate() {
             <span>Auto-Save to Database</span>
           </label>
         </div>
+
+        <!-- Quota Warning if full and auto_save is checked -->
+        <div
+          v-if="evalStore.isQuotaFull && form.auto_save"
+          class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 flex items-start gap-2.5 text-xs text-amber-200 mt-1"
+        >
+          <AlertTriangle class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <span class="font-semibold text-amber-300">Session Quota Full ({{ evalStore.evalSets.length }}/{{ evalStore.maxDatasets }}):</span>
+            Your 7-day anonymous session has reached the dataset limit. Uncheck <em>Auto-Save</em> to test synthesis without persisting, or delete an older dataset from your dashboard.
+          </div>
+        </div>
       </div>
 
       <div class="border-t border-slate-800 pt-5 flex items-center justify-between">
@@ -225,7 +247,7 @@ async function handleGenerate() {
 
         <button
           type="submit"
-          :disabled="evalStore.isGenerating"
+          :disabled="evalStore.isGenerating || (evalStore.isQuotaFull && form.auto_save)"
           class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-emerald-950 transition"
         >
           <RefreshCw v-if="evalStore.isGenerating" class="w-4 h-4 animate-spin" />

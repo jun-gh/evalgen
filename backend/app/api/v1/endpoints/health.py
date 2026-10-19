@@ -36,11 +36,15 @@ async def health_check(db: AsyncSession = Depends(get_db)):
 async def get_config():
     """
     Returns public non-sensitive configuration, including the active Gemini model
-    read from .env, consumed dynamically by the frontend.
+    and session/sample quotas read from .env, consumed dynamically by the frontend.
     """
     return {
         "app_name": settings.APP_NAME,
         "environment": settings.ENVIRONMENT,
         "gemini_model": settings.GEMINI_MODEL,
         "gemini_configured": bool(settings.GEMINI_API_KEY),
+        "max_datasets_per_session": settings.MAX_DATASETS_PER_SESSION,
+        "session_expiry_days": settings.SESSION_EXPIRY_DAYS,
+        "max_sample_count": settings.MAX_SAMPLE_COUNT,
+        "default_sample_count": settings.DEFAULT_SAMPLE_COUNT,
     }

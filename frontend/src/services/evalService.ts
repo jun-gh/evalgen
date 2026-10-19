@@ -19,6 +19,10 @@ export const evalService = {
         environment: healthRes.data.environment || "production",
         gemini_model: healthRes.data.gemini_model || "gemini-3.8-flash",
         gemini_configured: Boolean(healthRes.data.gemini_configured),
+        max_datasets_per_session: healthRes.data.max_datasets_per_session || 5,
+        session_expiry_days: healthRes.data.session_expiry_days || 7,
+        max_sample_count: healthRes.data.max_sample_count || 10,
+        default_sample_count: healthRes.data.default_sample_count || 3,
       };
     }
   },

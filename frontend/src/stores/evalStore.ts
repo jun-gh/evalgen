@@ -1,24 +1,34 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { evalService } from "@/services/evalService";
 import { useUiStore } from "@/stores/uiStore";
-import type { EvalSet, GenerationRequest, EvalRun, BenchmarkRunRequest } from "@/types";
+import type { EvalSet, GenerationRequest, EvalRun, BenchmarkRunRequest, AppConfig } from "@/types";
 
 export const useEvalStore = defineStore("evals", () => {
   const evalSets = ref<EvalSet[]>([]);
   const currentEvalSet = ref<EvalSet | null>(null);
   const currentRun = ref<EvalRun | null>(null);
+  const config = ref<AppConfig | null>(null);
   const activeModel = ref<string>(import.meta.env.VITE_GEMINI_MODEL || "gemini-3.8-flash");
   const isLoading = ref(false);
   const isGenerating = ref(false);
   const isBenchmarking = ref(false);
   const uiStore = useUiStore();
 
+  const maxDatasets = computed(() => config.value?.max_datasets_per_session ?? 5);
+  const sessionExpiryDays = computed(() => config.value?.session_expiry_days ?? 7);
+  const maxSampleCount = computed(() => config.value?.max_sample_count ?? 10);
+  const defaultSampleCount = computed(() => config.value?.default_sample_count ?? 3);
+  const isQuotaFull = computed(() => evalSets.value.length >= maxDatasets.value);
+
   async function fetchConfig() {
     try {
       const cfg = await evalService.getConfig();
-      if (cfg && cfg.gemini_model) {
-        activeModel.value = cfg.gemini_model;
+      if (cfg) {
+        config.value = cfg;
+        if (cfg.gemini_model) {
+          activeModel.value = cfg.gemini_model;
+        }
       }
     } catch (err) {
       console.warn("Could not fetch remote config, using default/env model:", activeModel.value);
@@ -133,6 +143,12 @@ export const useEvalStore = defineStore("evals", () => {
     currentEvalSet,
     currentRun,
     activeModel,
+    config,
+    maxDatasets,
+    sessionExpiryDays,
+    maxSampleCount,
+    defaultSampleCount,
+    isQuotaFull,
     isLoading,
     isGenerating,
     isBenchmarking,

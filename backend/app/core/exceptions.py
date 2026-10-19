@@ -82,6 +82,17 @@ class ValidationException(EvalGenException):
         )
 
 
+class QuotaExceededException(EvalGenException):
+    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="QUOTA_EXCEEDED",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            details=details,
+            retryable=False,
+        )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """Register uniform error handlers for all exceptions."""
 
@@ -103,13 +114,14 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+        from fastapi.encoders import jsonable_encoder
         trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
         envelope = ErrorEnvelope(
             success=False,
             error=ErrorDetail(
                 code="VALIDATION_ERROR",
                 message="Invalid request payload or query parameters.",
-                details={"errors": exc.errors()},
+                details={"errors": jsonable_encoder(exc.errors())},
                 retryable=False,
                 retry_count=0,
                 trace_id=trace_id,
