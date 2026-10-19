@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import DashboardView from "@/views/DashboardView.vue";
 import GeneratorView from "@/views/GeneratorView.vue";
 import EvalDetailView from "@/views/EvalDetailView.vue";
+import BenchmarkView from "@/views/BenchmarkView.vue";
 
 const routes = [
   {
@@ -13,6 +14,11 @@ const routes = [
     path: "/generate",
     name: "generator",
     component: GeneratorView,
+  },
+  {
+    path: "/benchmark",
+    name: "benchmark",
+    component: BenchmarkView,
   },
   {
     path: "/evals/:id",

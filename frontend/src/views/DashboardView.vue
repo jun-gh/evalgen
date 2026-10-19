@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { useEvalStore } from "@/stores/evalStore";
 import { evalService } from "@/services/evalService";
-import { Sparkles, Layers, FileDown, Trash2, ArrowRight, RefreshCw, Database } from "lucide-vue-next";
+import { Sparkles, Layers, FileDown, Trash2, ArrowRight, RefreshCw, Database, PlayCircle } from "lucide-vue-next";
 
 const evalStore = useEvalStore();
 const selectedDomain = ref<string>("");
@@ -55,6 +55,14 @@ function getDownloadUrl(id: string) {
           >
             <Sparkles class="w-4 h-4" />
             Synthesize New Eval Set
+          </RouterLink>
+
+          <RouterLink
+            to="/benchmark"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm border border-slate-700 transition"
+          >
+            <PlayCircle class="w-4 h-4 text-emerald-400" />
+            Run Benchmark Studio
           </RouterLink>
 
           <button
@@ -157,13 +165,24 @@ function getDownloadUrl(id: string) {
             </button>
           </div>
 
-          <RouterLink
-            :to="`/evals/${es.id}`"
-            class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition"
-          >
-            Inspect Evals
-            <ArrowRight class="w-3.5 h-3.5" />
-          </RouterLink>
+          <div class="flex items-center gap-3">
+            <RouterLink
+              :to="`/benchmark?id=${es.id}`"
+              class="text-xs font-semibold text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition"
+              title="Run in-browser benchmark on this eval set"
+            >
+              <PlayCircle class="w-3.5 h-3.5 text-emerald-400" />
+              Benchmark
+            </RouterLink>
+
+            <RouterLink
+              :to="`/evals/${es.id}`"
+              class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition"
+            >
+              Inspect
+              <ArrowRight class="w-3.5 h-3.5" />
+            </RouterLink>
+          </div>
         </div>
       </div>
     </div>

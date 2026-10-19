@@ -2,14 +2,16 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { evalService } from "@/services/evalService";
 import { useUiStore } from "@/stores/uiStore";
-import type { EvalSet, GenerationRequest } from "@/types";
+import type { EvalSet, GenerationRequest, EvalRun, BenchmarkRunRequest } from "@/types";
 
 export const useEvalStore = defineStore("evals", () => {
   const evalSets = ref<EvalSet[]>([]);
   const currentEvalSet = ref<EvalSet | null>(null);
+  const currentRun = ref<EvalRun | null>(null);
   const activeModel = ref<string>(import.meta.env.VITE_GEMINI_MODEL || "gemini-3.8-flash");
   const isLoading = ref(false);
   const isGenerating = ref(false);
+  const isBenchmarking = ref(false);
   const uiStore = useUiStore();
 
   async function fetchConfig() {
@@ -87,16 +89,59 @@ export const useEvalStore = defineStore("evals", () => {
     }
   }
 
+  async function importCsv(file: File): Promise<EvalSet> {
+    isLoading.value = true;
+    try {
+      const created = await evalService.importCsv(file);
+      uiStore.addToast({
+        type: "success",
+        title: "CSV Imported!",
+        message: `Successfully imported "${created.title}" with ${created.total_test_cases || created.test_cases?.length || 0} test cases.`,
+      });
+      await loadEvalSets();
+      currentEvalSet.value = created;
+      return created;
+    } catch (err: any) {
+      console.error("Failed to import CSV:", err);
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function runBenchmark(evalSetId: string, payload?: BenchmarkRunRequest): Promise<EvalRun> {
+    isBenchmarking.value = true;
+    try {
+      const run = await evalService.runBenchmark(evalSetId, payload);
+      currentRun.value = run;
+      uiStore.addToast({
+        type: "success",
+        title: "Benchmark Complete!",
+        message: `Scored ${run.total_count} test cases: ${run.accuracy_rate}% pass rate.`,
+      });
+      return run;
+    } catch (err: any) {
+      console.error("Benchmark run failed:", err);
+      throw err;
+    } finally {
+      isBenchmarking.value = false;
+    }
+  }
+
   return {
     evalSets,
     currentEvalSet,
+    currentRun,
     activeModel,
     isLoading,
     isGenerating,
+    isBenchmarking,
     fetchConfig,
     loadEvalSets,
     loadEvalSet,
     generateEvals,
     deleteEvalSet,
+    importCsv,
+    runBenchmark,
   };
 });

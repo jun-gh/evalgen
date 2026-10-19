@@ -33,39 +33,83 @@ class GeminiService:
                 self._client = gai.GenerativeModel(self.model_name)
         return self._client
 
-    def _sync_generate(self, prompt: str, system_instruction: str) -> str:
+    def _sync_generate(
+        self,
+        prompt: str,
+        system_instruction: str = "",
+        response_mime_type: Optional[str] = "application/json",
+        model_name: Optional[str] = None,
+    ) -> str:
         """Synchronous invocation of Gemini API to be executed in threadpool."""
         client = self._get_client()
+        target_model = (model_name or self.model_name).strip()
 
         # Handle modern google-genai Client
         if hasattr(client, "models") and hasattr(client.models, "generate_content"):
             from google.genai import types
-            config = types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.7,
-                response_mime_type="application/json",
-            )
+
+            config_kwargs = {
+                "system_instruction": system_instruction,
+                "temperature": 0.7,
+            }
+            if response_mime_type:
+                config_kwargs["response_mime_type"] = response_mime_type
+
+            config = types.GenerateContentConfig(**config_kwargs)
             response = client.models.generate_content(
-                model=self.model_name,
+                model=target_model,
                 contents=prompt,
                 config=config,
             )
-            return response.text
+            return response.text or ""
 
         # Handle classic google.generativeai
         import google.generativeai as gai
+
+        gen_config = {"temperature": 0.7}
+        if response_mime_type:
+            gen_config["response_mime_type"] = response_mime_type
+
         model = gai.GenerativeModel(
-            model_name=self.model_name,
+            model_name=target_model,
             system_instruction=system_instruction,
-            generation_config={"response_mime_type": "application/json", "temperature": 0.7},
+            generation_config=gen_config,
         )
         response = model.generate_content(prompt)
-        return response.text
+        return response.text or ""
 
     @with_retry(max_attempts=3, min_backoff=1.0, max_backoff=6.0)
-    async def _call_gemini_raw(self, prompt: str, system_instruction: str) -> str:
+    async def _call_gemini_raw(
+        self,
+        prompt: str,
+        system_instruction: str = "",
+        response_mime_type: Optional[str] = "application/json",
+        model_name: Optional[str] = None,
+    ) -> str:
         """Call Gemini API asynchronously in threadpool to avoid blocking FastAPI event loop."""
-        return await asyncio.to_thread(self._sync_generate, prompt, system_instruction)
+        return await asyncio.to_thread(self._sync_generate, prompt, system_instruction, response_mime_type, model_name)
+
+    async def generate_response(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ) -> str:
+        """Generate a candidate text response under evaluation."""
+        is_placeholder_key = not self.api_key or self.api_key in ("your_gemini_api_key_here", "dummy", "test")
+        if is_placeholder_key:
+            return f"Standard candidate response addressing: {prompt[:40]}... strictly following policy guidelines."
+
+        try:
+            return await self._call_gemini_raw(
+                prompt=prompt,
+                system_instruction=system_prompt or "",
+                response_mime_type=None,
+                model_name=model_name,
+            )
+        except Exception as e:
+            logger.warning("Error generating candidate response from Gemini: %s", e)
+            return f"Candidate response fallback due to generation error: {str(e)}"
 
     async def generate_eval_set(
         self, request: GenerationRequest

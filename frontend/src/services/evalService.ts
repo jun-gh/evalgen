@@ -1,5 +1,5 @@
 import { apiClient } from "./api";
-import type { EvalSet, GenerationRequest, GenerationResponse, AppConfig } from "@/types";
+import type { EvalSet, GenerationRequest, GenerationResponse, AppConfig, EvalRun, BenchmarkRunRequest } from "@/types";
 
 export const evalService = {
   async getHealth() {
@@ -23,8 +23,9 @@ export const evalService = {
     }
   },
 
-  async listEvalSets(domain?: string): Promise<EvalSet[]> {
-    const params = domain ? { domain } : {};
+  async listEvalSets(domain?: string, limit = 100): Promise<EvalSet[]> {
+    const params: Record<string, any> = { limit };
+    if (domain) params.domain = domain;
     const res = await apiClient.get<EvalSet[]>("/eval-sets", { params });
     if (!Array.isArray(res.data)) {
       console.warn("[evalService] Expected array from /eval-sets, got:", typeof res.data);
@@ -43,7 +44,9 @@ export const evalService = {
   },
 
   async generateEvalSet(payload: GenerationRequest): Promise<GenerationResponse> {
-    const res = await apiClient.post<GenerationResponse>("/generator/generate", payload);
+    const res = await apiClient.post<GenerationResponse>("/generator/generate", payload, {
+      timeout: 120000, // 2 minutes for LLM synthetic generation
+    });
     return res.data;
   },
 
@@ -55,5 +58,31 @@ export const evalService = {
   getExportCsvUrl(id: string): string {
     const base = apiClient.defaults.baseURL || "/api/v1";
     return `${base}/eval-sets/${id}/export/csv`;
+  },
+
+  async importCsv(file: File): Promise<EvalSet> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await apiClient.post<EvalSet>("/eval-sets/import-csv", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  async runBenchmark(evalSetId: string, payload?: BenchmarkRunRequest): Promise<EvalRun> {
+    const res = await apiClient.post<EvalRun>(`/eval-sets/${evalSetId}/run`, payload || {}, {
+      timeout: 180000, // 3 minutes for multi-testcase LLM generation and judge grading
+    });
+    return res.data;
+  },
+
+  async listEvalRuns(evalSetId: string): Promise<EvalRun[]> {
+    const res = await apiClient.get<EvalRun[]>(`/eval-sets/${evalSetId}/runs`);
+    return res.data;
+  },
+
+  async getEvalRun(runId: string): Promise<EvalRun> {
+    const res = await apiClient.get<EvalRun>(`/eval-sets/runs/${runId}`);
+    return res.data;
   },
 };
