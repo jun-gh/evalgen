@@ -229,7 +229,9 @@ cp .env.example .env
 # Run migrations / start server
 uvicorn app.main:app --reload --port 8000
 ```
-API Documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs).
+API Documentation will be available local at [http://localhost:8000/docs](http://localhost:8000/docs).
+API is now live at **https://evalgen-backend.onrender.com/api/v1**  
+Interactive docs: **https://evalgen-backend.onrender.com/docs**
 
 ### 7.2 Frontend Setup
 ```bash
@@ -242,6 +244,7 @@ npm install
 npm run dev
 ```
 Open [http://localhost:5173](http://localhost:5173) in your browser.
+Frontend is now live at **https://evalgen.jmco.workers.dev**
 
 ---
 
