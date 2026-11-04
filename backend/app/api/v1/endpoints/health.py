@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
@@ -9,11 +9,12 @@ router = APIRouter()
 
 
 @router.get("/health", summary="Health and readiness check")
-async def health_check(db: AsyncSession = Depends(get_db)):
+async def health_check(response: Response, db: AsyncSession = Depends(get_db)):
     """
     Health check endpoint used by Render Blueprint healthCheckPath and
     frontend cold-start detection banners.
     """
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     db_status = "connected"
     try:
         await db.execute(text("SELECT 1"))
@@ -33,11 +34,12 @@ async def health_check(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/config", summary="Public runtime configuration")
-async def get_config():
+async def get_config(response: Response):
     """
     Returns public non-sensitive configuration, including the active Gemini model
     and session/sample quotas read from .env, consumed dynamically by the frontend.
     """
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     return {
         "app_name": settings.APP_NAME,
         "environment": settings.ENVIRONMENT,

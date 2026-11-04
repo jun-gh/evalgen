@@ -9,15 +9,19 @@ export const evalService = {
 
   async getConfig(): Promise<AppConfig> {
     try {
-      const res = await apiClient.get<AppConfig>("/config");
+      const res = await apiClient.get<AppConfig>("/config", {
+        params: { _t: Date.now() },
+      });
       return res.data;
     } catch {
       // Fallback to /health which also contains gemini_model
-      const healthRes = await apiClient.get("/health");
+      const healthRes = await apiClient.get("/health", {
+        params: { _t: Date.now() },
+      });
       return {
         app_name: healthRes.data.app || "EvalGen",
         environment: healthRes.data.environment || "production",
-        gemini_model: healthRes.data.gemini_model || "gemini-3.8-flash",
+        gemini_model: healthRes.data.gemini_model || import.meta.env.VITE_GEMINI_MODEL || "gemini-3.1-flash-lite",
         gemini_configured: Boolean(healthRes.data.gemini_configured),
         max_datasets_per_session: healthRes.data.max_datasets_per_session || 5,
         session_expiry_days: healthRes.data.session_expiry_days || 7,

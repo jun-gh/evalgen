@@ -9,7 +9,7 @@ export const useEvalStore = defineStore("evals", () => {
   const currentEvalSet = ref<EvalSet | null>(null);
   const currentRun = ref<EvalRun | null>(null);
   const config = ref<AppConfig | null>(null);
-  const activeModel = ref<string>(import.meta.env.VITE_GEMINI_MODEL || "gemini-3.8-flash");
+  const activeModel = ref<string>(import.meta.env.VITE_GEMINI_MODEL || "gemini-3.1-flash-lite");
   const isLoading = ref(false);
   const isGenerating = ref(false);
   const isBenchmarking = ref(false);
@@ -38,10 +38,30 @@ export const useEvalStore = defineStore("evals", () => {
   // Trigger initial config fetch
   fetchConfig();
 
-  async function loadEvalSets() {
+  // Auto-sync configuration on tab focus, visibility change, and periodic poll
+  if (typeof window !== "undefined") {
+    window.addEventListener("focus", () => {
+      fetchConfig();
+    });
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          fetchConfig();
+        }
+      });
+    }
+    // Poll every 15 seconds to catch server restarts automatically
+    setInterval(() => {
+      if (typeof document === "undefined" || document.visibilityState === "visible") {
+        fetchConfig();
+      }
+    }, 15000);
+  }
+
+  async function loadEvalSets(domain?: string) {
     isLoading.value = true;
     try {
-      evalSets.value = await evalService.listEvalSets();
+      evalSets.value = await evalService.listEvalSets(domain);
     } catch (err: any) {
       console.error("Failed to load eval sets:", err);
     } finally {

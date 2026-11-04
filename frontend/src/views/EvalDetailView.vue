@@ -34,7 +34,7 @@ async function handleDelete() {
     <div>
       <button
         @click="router.push('/')"
-        class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition"
+        class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition"
       >
         <ArrowLeft class="w-4 h-4" />
         Back to All Datasets
@@ -43,44 +43,44 @@ async function handleDelete() {
 
     <!-- Loading -->
     <div v-if="evalStore.isLoading && !evalStore.currentEvalSet" class="text-center py-20">
-      <RefreshCw class="w-8 h-8 text-emerald-400 animate-spin mx-auto mb-3" />
-      <p class="text-sm text-slate-400">Loading dataset details...</p>
+      <RefreshCw class="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-spin mx-auto mb-3" />
+      <p class="text-sm text-slate-500 dark:text-slate-400">Loading dataset details...</p>
     </div>
 
     <div v-else-if="evalStore.currentEvalSet" class="space-y-6">
       <!-- Header Banner -->
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-2">
-            <span class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
               {{ evalStore.currentEvalSet.domain }}
             </span>
-            <span class="text-xs text-slate-500 uppercase tracking-wider">
+            <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               {{ evalStore.currentEvalSet.eval_type }}
             </span>
-            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 inline-flex items-center gap-1">
-              <Cpu class="w-3 h-3 text-emerald-400" />
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1">
+              <Cpu class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
               Target Model: {{ evalStore.activeModel }}
             </span>
           </div>
 
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+          <h1 class="text-xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             {{ evalStore.currentEvalSet.title }}
           </h1>
 
-          <p class="text-sm text-slate-400 max-w-2xl leading-relaxed">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
             {{ evalStore.currentEvalSet.description || "No description provided." }}
           </p>
 
-          <div class="text-xs text-slate-500 pt-1">
+          <div class="text-xs text-slate-500 dark:text-slate-400 pt-1">
             Created: {{ new Date(evalStore.currentEvalSet.created_at).toLocaleString() }}
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto">
           <RouterLink
             :to="`/benchmark?id=${evalSetId}`"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-950 transition"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-600/20 dark:shadow-emerald-950 transition"
           >
             <PlayCircle class="w-4 h-4" />
             Run Benchmark
@@ -89,15 +89,15 @@ async function handleDelete() {
           <a
             :href="getDownloadUrl()"
             download
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 transition"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs border border-slate-300 dark:border-slate-700 transition"
           >
-            <FileDown class="w-4 h-4 text-emerald-400" />
+            <FileDown class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Export CSV
           </a>
 
           <button
             @click="handleDelete"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-medium text-xs border border-rose-800/40 transition"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 font-medium text-xs border border-rose-200 dark:border-rose-800/40 transition"
           >
             <Trash2 class="w-4 h-4" />
             Delete
@@ -108,8 +108,8 @@ async function handleDelete() {
       <!-- Test Cases Table -->
       <div class="space-y-3">
         <div class="flex items-center justify-between">
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <Layers class="w-4 h-4 text-emerald-400" />
+          <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Layers class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Test Cases ({{ evalStore.currentEvalSet.test_cases?.length || 0 }})
           </h2>
         </div>
@@ -119,7 +119,7 @@ async function handleDelete() {
           :testCases="evalStore.currentEvalSet.test_cases"
         />
 
-        <div v-else class="text-center py-12 border border-dashed border-slate-800 rounded-xl p-6 text-slate-500 text-sm">
+        <div v-else class="text-center py-12 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-6 text-slate-500 dark:text-slate-400 text-sm">
           No test cases registered for this dataset.
         </div>
       </div>
