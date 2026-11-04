@@ -180,22 +180,22 @@ function toggleCard(id: string) {
 <template>
   <div class="space-y-8 max-w-6xl mx-auto">
     <!-- Navigation back -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-2.5">
       <button
         @click="router.push('/')"
-        class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition"
+        class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition"
       >
         <ArrowLeft class="w-4 h-4" />
         Back to Dashboard
       </button>
 
       <div class="flex items-center gap-2">
-        <div class="flex items-center gap-1.5 text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2.5 py-1 rounded-full">
+        <div class="flex items-center gap-1.5 text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 px-2.5 py-1 rounded-full">
           <Cpu class="w-3.5 h-3.5" />
           Model: {{ evalStore.activeModel }}
         </div>
-        <div class="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full">
-          <ShieldCheck class="w-3.5 h-3.5 text-emerald-400" />
+        <div class="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-full">
+          <ShieldCheck class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           LLM-as-a-Judge Active
         </div>
       </div>
@@ -203,11 +203,11 @@ function toggleCard(id: string) {
 
     <!-- Header -->
     <div>
-      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
-        <PlayCircle class="w-7 h-7 text-emerald-400" />
-        Evaluation Benchmark Studio
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+        <PlayCircle class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <span>Evaluation Benchmark Studio</span>
       </h1>
-      <p class="text-sm text-slate-400 mt-1 max-w-3xl">
+      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
         Upload a test suite CSV or pick an existing evaluation set. Test your candidate system prompt against golden cases and review LLM-as-a-Judge scores and critiques in your browser.
       </p>
     </div>
@@ -216,17 +216,17 @@ function toggleCard(id: string) {
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <!-- Left Column: Dataset Selection (5 cols) -->
       <div class="lg:col-span-5 space-y-4">
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <span class="text-xs uppercase tracking-wider font-semibold text-slate-300 flex items-center gap-1.5">
-              <Layers class="w-4 h-4 text-emerald-400" />
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4 sm:p-5 space-y-4 shadow-sm">
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <span class="text-xs uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <Layers class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               1. Choose Dataset
             </span>
-            <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+            <div class="flex bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px]">
               <button
                 type="button"
                 @click="datasetMode = 'saved'"
-                :class="datasetMode === 'saved' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'"
+                :class="datasetMode === 'saved' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                 class="px-2.5 py-1 rounded-md font-medium transition"
               >
                 Saved Sets
@@ -234,7 +234,7 @@ function toggleCard(id: string) {
               <button
                 type="button"
                 @click="datasetMode = 'upload'"
-                :class="datasetMode === 'upload' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'"
+                :class="datasetMode === 'upload' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                 class="px-2.5 py-1 rounded-md font-medium transition"
               >
                 Upload CSV
@@ -244,10 +244,10 @@ function toggleCard(id: string) {
 
           <!-- Mode A: Select from Saved Sets -->
           <div v-if="datasetMode === 'saved'" class="space-y-3">
-            <label class="block text-xs text-slate-400">Select an existing evaluation dataset:</label>
+            <label class="block text-xs text-slate-600 dark:text-slate-400">Select an existing evaluation dataset:</label>
             <select
               v-model="selectedEvalSetId"
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
             >
               <option disabled value="">-- Choose Evaluation Set --</option>
               <option v-for="es in evalStore.evalSets" :key="es.id" :value="es.id">
@@ -255,10 +255,10 @@ function toggleCard(id: string) {
               </option>
             </select>
 
-            <div v-if="activeEvalSet" class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs space-y-1.5">
-              <div class="font-semibold text-slate-200 line-clamp-1">{{ activeEvalSet.title }}</div>
-              <div class="text-[11px] text-slate-400 line-clamp-2">{{ activeEvalSet.description || "No description provided." }}</div>
-              <div class="flex items-center gap-2 pt-1 font-mono text-[11px] text-emerald-400">
+            <div v-if="activeEvalSet" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 text-xs space-y-1.5">
+              <div class="font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">{{ activeEvalSet.title }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">{{ activeEvalSet.description || "No description provided." }}</div>
+              <div class="flex items-center gap-2 pt-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-400">
                 <span>{{ activeEvalSet.domain }}</span>
                 <span>•</span>
                 <span>{{ activeEvalSet.total_test_cases || activeEvalSet.test_cases?.length || 0 }} test cases</span>
@@ -279,13 +279,13 @@ function toggleCard(id: string) {
               @dragover.prevent
               @drop.prevent="handleFileDrop"
               @click="triggerFileInput"
-              class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-950/40 hover:bg-slate-950/80"
+              class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100/50 dark:hover:bg-slate-950/80"
             >
-              <UploadCloud class="w-8 h-8 text-slate-400 mx-auto mb-2" :class="{ 'animate-bounce': isUploading }" />
-              <p class="text-xs font-semibold text-slate-200">
+              <UploadCloud class="w-8 h-8 text-slate-400 dark:text-slate-500 mx-auto mb-2" :class="{ 'animate-bounce': isUploading }" />
+              <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">
                 {{ isUploading ? "Importing CSV..." : "Click or drag & drop CSV file" }}
               </p>
-              <p class="text-[11px] text-slate-500 mt-1">
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                 Supports EvalGen exported CSVs or columns: Prompt Input, Expected Output, Context, Rubric.
               </p>
             </div>
@@ -295,25 +295,25 @@ function toggleCard(id: string) {
 
       <!-- Right Column: Candidate Prompt & Execution (7 cols) -->
       <div class="lg:col-span-7 space-y-4">
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-4">
-          <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-            <span class="text-xs uppercase tracking-wider font-semibold text-slate-300 flex items-center gap-1.5">
-              <Sparkles class="w-4 h-4 text-emerald-400" />
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4 sm:p-5 space-y-4 shadow-sm">
+          <div class="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <Sparkles class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               2. Candidate Application Behavior Under Test
             </span>
-            <span class="text-[11px] font-mono text-slate-400">Target Model: {{ evalStore.activeModel }}</span>
+            <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400">Target Model: {{ evalStore.activeModel }}</span>
           </div>
 
           <!-- Preset pills -->
           <div>
-            <label class="text-[11px] text-slate-400 block mb-1.5 uppercase tracking-wider font-medium">Quick Persona Presets:</label>
+            <label class="text-[11px] text-slate-500 dark:text-slate-400 block mb-1.5 uppercase tracking-wider font-medium">Quick Persona Presets:</label>
             <div class="flex flex-wrap gap-1.5">
               <button
                 v-for="p in promptPresets"
                 :key="p.name"
                 type="button"
                 @click="applyPreset(p.prompt)"
-                class="px-2.5 py-1 rounded-lg text-[11px] border border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/50 hover:text-emerald-400 transition"
+                class="px-2.5 py-1 rounded-lg text-[11px] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-emerald-500/50 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
               >
                 {{ p.name }}
               </button>
@@ -322,21 +322,21 @@ function toggleCard(id: string) {
 
           <!-- Candidate prompt textarea -->
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">
+            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
               System Instruction / Target Prompt:
             </label>
             <textarea
               v-model="candidatePrompt"
               rows="4"
               placeholder="Define persona, guidelines, and behavioral boundaries for the model under test..."
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500 transition leading-relaxed font-sans"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition leading-relaxed font-sans"
             ></textarea>
           </div>
 
           <!-- Run Benchmark Button -->
-          <div class="flex items-center justify-between pt-1">
-            <span class="text-xs text-slate-500 font-mono flex items-center gap-1.5">
-              <ShieldCheck class="w-3.5 h-3.5 text-emerald-400" />
+          <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center justify-center sm:justify-start gap-1.5">
+              <ShieldCheck class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               Graded via LLM-as-a-Judge
             </span>
 
@@ -344,7 +344,7 @@ function toggleCard(id: string) {
               type="button"
               @click="handleRunBenchmark"
               :disabled="evalStore.isBenchmarking || !selectedEvalSetId"
-              class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-xs shadow-lg shadow-emerald-950 transition"
+              class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-xs shadow-md shadow-emerald-600/20 dark:shadow-emerald-950 transition w-full sm:w-auto"
             >
               <RefreshCw v-if="evalStore.isBenchmarking" class="w-4 h-4 animate-spin" />
               <PlayCircle v-else class="w-4 h-4" />
@@ -357,32 +357,32 @@ function toggleCard(id: string) {
 
     <!-- Benchmark Results Dashboard -->
     <div v-if="evalStore.currentRun" class="space-y-6 pt-4">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <CheckCircle2 class="w-5 h-5 text-emerald-400" />
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <CheckCircle2 class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Benchmark Run Results
           </h2>
-          <p class="text-xs text-slate-400">
+          <p class="text-xs text-slate-500 dark:text-slate-400">
             Tested on {{ evalStore.currentRun.model_tested }} at {{ new Date(evalStore.currentRun.created_at).toLocaleTimeString() }}.
           </p>
         </div>
 
         <!-- Filter pills -->
-        <div class="flex bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs">
+        <div class="flex w-full sm:w-auto bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 rounded-xl text-xs overflow-x-auto">
           <button
             type="button"
             @click="filterStatus = 'all'"
-            :class="filterStatus === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'"
-            class="px-3 py-1 rounded-lg font-medium transition"
+            :class="filterStatus === 'all' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+            class="flex-1 sm:flex-none justify-center px-2.5 sm:px-3 py-1 rounded-lg font-medium transition whitespace-nowrap"
           >
             All ({{ evalStore.currentRun.total_count }})
           </button>
           <button
             type="button"
             @click="filterStatus = 'passed'"
-            :class="filterStatus === 'passed' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/40' : 'text-slate-400 hover:text-white'"
-            class="px-3 py-1 rounded-lg font-medium transition flex items-center gap-1"
+            :class="filterStatus === 'passed' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+            class="flex-1 sm:flex-none justify-center px-2.5 sm:px-3 py-1 rounded-lg font-medium transition flex items-center gap-1 whitespace-nowrap"
           >
             <CheckCircle2 class="w-3.5 h-3.5" />
             Passed ({{ evalStore.currentRun.passed_count }})
@@ -390,8 +390,8 @@ function toggleCard(id: string) {
           <button
             type="button"
             @click="filterStatus = 'failed'"
-            :class="filterStatus === 'failed' ? 'bg-rose-950 text-rose-400 border border-rose-800/40' : 'text-slate-400 hover:text-white'"
-            class="px-3 py-1 rounded-lg font-medium transition flex items-center gap-1"
+            :class="filterStatus === 'failed' ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-800/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+            class="flex-1 sm:flex-none justify-center px-2.5 sm:px-3 py-1 rounded-lg font-medium transition flex items-center gap-1 whitespace-nowrap"
           >
             <XCircle class="w-3.5 h-3.5" />
             Failed ({{ evalStore.currentRun.total_count - evalStore.currentRun.passed_count }})
@@ -400,42 +400,42 @@ function toggleCard(id: string) {
       </div>
 
       <!-- KPI Summary Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Pass Rate</div>
-          <div class="text-2xl font-bold mt-1" :class="evalStore.currentRun.accuracy_rate >= 70 ? 'text-emerald-400' : 'text-rose-400'">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-3.5 sm:p-4 shadow-sm">
+          <div class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Pass Rate</div>
+          <div class="text-xl sm:text-2xl font-bold mt-1" :class="evalStore.currentRun.accuracy_rate >= 70 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
             {{ evalStore.currentRun.accuracy_rate }}%
           </div>
-          <div class="text-[11px] text-slate-500 mt-0.5">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
             {{ evalStore.currentRun.passed_count }} of {{ evalStore.currentRun.total_count }} passed
           </div>
         </div>
 
-        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Avg Rubric Score</div>
-          <div class="text-2xl font-bold text-white mt-1">
+        <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-3.5 sm:p-4 shadow-sm">
+          <div class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Avg Rubric Score</div>
+          <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1">
             {{ ((evalStore.currentRun.overall_score || 0) * 100).toFixed(0) }}%
           </div>
-          <div class="text-[11px] text-slate-500 mt-0.5">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
             {{ evalStore.currentRun.overall_score || 0 }} / 1.0 scale
           </div>
         </div>
 
-        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Avg Latency</div>
-          <div class="text-2xl font-bold text-slate-200 mt-1 flex items-center gap-1.5">
-            <Clock class="w-5 h-5 text-slate-400" />
+        <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-3.5 sm:p-4 shadow-sm">
+          <div class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Avg Latency</div>
+          <div class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200 mt-1 flex items-center gap-1.5">
+            <Clock class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
             {{ averageLatency }} ms
           </div>
-          <div class="text-[11px] text-slate-500 mt-0.5">Per test case</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Per test case</div>
         </div>
 
-        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Model Evaluated</div>
-          <div class="text-sm font-mono font-bold text-emerald-400 mt-2 truncate" :title="evalStore.currentRun.model_tested">
+        <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-3.5 sm:p-4 shadow-sm">
+          <div class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Model Evaluated</div>
+          <div class="text-xs sm:text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400 mt-2 truncate" :title="evalStore.currentRun.model_tested">
             {{ evalStore.currentRun.model_tested }}
           </div>
-          <div class="text-[11px] text-slate-500 mt-0.5">Prompt & Judge Engine</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Prompt & Judge Engine</div>
         </div>
       </div>
 
@@ -445,40 +445,40 @@ function toggleCard(id: string) {
           v-for="(result, index) in filteredResults"
           :key="result.id"
           class="rounded-xl border transition overflow-hidden"
-          :class="result.passed ? 'border-slate-800 bg-slate-900/50' : 'border-rose-900/50 bg-rose-950/10'"
+          :class="result.passed ? 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm' : 'border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/10 shadow-sm'"
         >
           <!-- Card Header / Collapsible Trigger -->
           <div
             @click="toggleCard(result.id)"
-            class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-800/30 transition"
+            class="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition select-none"
           >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
               <span
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1"
-                :class="result.passed ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'"
+                class="px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1 shrink-0"
+                :class="result.passed ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30'"
               >
                 <CheckCircle2 v-if="result.passed" class="w-3.5 h-3.5" />
                 <XCircle v-else class="w-3.5 h-3.5" />
                 {{ result.passed ? "PASS" : "FAIL" }}
               </span>
 
-              <span class="text-xs font-mono text-slate-400">#{{ index + 1 }}</span>
+              <span class="text-xs font-mono text-slate-400 dark:text-slate-500 shrink-0">#{{ index + 1 }}</span>
 
-              <span class="text-xs font-medium text-white line-clamp-1 max-w-md sm:max-w-xl">
+              <span class="text-xs font-medium text-slate-900 dark:text-white truncate">
                 {{ result.prompt_input || "Test Query" }}
               </span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <span class="text-xs font-mono text-slate-300">
-                Score: <span :class="result.passed ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'">{{ result.score.toFixed(2) }}</span>
+            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 text-xs pl-0 sm:pl-2">
+              <span class="font-mono text-slate-600 dark:text-slate-300">
+                Score: <span :class="result.passed ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-bold'">{{ result.score.toFixed(2) }}</span>
               </span>
 
-              <span v-if="result.latency_ms" class="text-xs font-mono text-slate-500 hidden sm:inline">
+              <span v-if="result.latency_ms" class="font-mono text-slate-400 dark:text-slate-500">
                 {{ result.latency_ms }}ms
               </span>
 
-              <button type="button" class="text-slate-400 hover:text-white">
+              <button type="button" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1">
                 <ChevronUp v-if="expandedCards[result.id]" class="w-4 h-4" />
                 <ChevronDown v-else class="w-4 h-4" />
               </button>
@@ -486,19 +486,19 @@ function toggleCard(id: string) {
           </div>
 
           <!-- Expanded Body -->
-          <div v-if="expandedCards[result.id]" class="border-t border-slate-800/80 p-5 space-y-4 bg-slate-950/40 text-xs">
+          <div v-if="expandedCards[result.id]" class="border-t border-slate-200 dark:border-slate-800/80 p-5 space-y-4 bg-slate-50/70 dark:bg-slate-950/40 text-xs">
             <!-- Full Prompt & Context -->
             <div class="space-y-2">
               <div>
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">User Prompt:</span>
-                <p class="text-slate-200 mt-1 leading-relaxed bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">User Prompt:</span>
+                <p class="text-slate-800 dark:text-slate-200 mt-1 leading-relaxed bg-white dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
                   {{ result.prompt_input }}
                 </p>
               </div>
 
               <div v-if="result.context">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Reference Context:</span>
-                <p class="text-slate-300 mt-1 leading-relaxed bg-slate-900/40 p-3 rounded-lg border border-slate-800 font-mono text-[11px]">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Reference Context:</span>
+                <p class="text-slate-700 dark:text-slate-300 mt-1 leading-relaxed bg-white/70 dark:bg-slate-900/40 p-3 rounded-lg border border-slate-200 dark:border-slate-800 font-mono text-[11px]">
                   {{ result.context }}
                 </p>
               </div>
@@ -509,12 +509,12 @@ function toggleCard(id: string) {
               <!-- Actual Output -->
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                     <Sparkles class="w-3.5 h-3.5" />
                     Candidate Actual Output
                   </span>
                 </div>
-                <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-200 leading-relaxed min-h-[90px]">
+                <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 leading-relaxed min-h-[90px] shadow-sm">
                   {{ result.actual_output || "No output produced." }}
                 </div>
               </div>
@@ -522,19 +522,19 @@ function toggleCard(id: string) {
               <!-- Expected Golden Output -->
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1">
                     <FileText class="w-3.5 h-3.5" />
                     Reference Golden Output
                   </span>
                 </div>
-                <div class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 text-slate-300 leading-relaxed min-h-[90px]">
+                <div class="p-3.5 rounded-xl bg-white/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 leading-relaxed min-h-[90px]">
                   {{ result.expected_output }}
                 </div>
               </div>
             </div>
 
             <!-- LLM Judge Feedback & Rubric -->
-            <div class="rounded-xl p-4 border" :class="result.passed ? 'bg-emerald-950/20 border-emerald-800/30 text-emerald-300' : 'bg-rose-950/20 border-rose-800/30 text-rose-300'">
+            <div class="rounded-xl p-4 border" :class="result.passed ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/30 text-emerald-900 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/30 text-rose-900 dark:text-rose-300'">
               <div class="font-semibold text-xs mb-1 flex items-center gap-1.5">
                 <ShieldCheck class="w-4 h-4" />
                 LLM-as-a-Judge Evaluation Feedback:

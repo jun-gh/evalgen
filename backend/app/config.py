@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Application Settings with environment variable overrides."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "backend/.env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -30,7 +30,10 @@ class Settings(BaseSettings):
         default="",
         description="Google Gemini API Key for synthesis and evaluation",
     )
-    GEMINI_MODEL: str = "gemini-3.8-flash"
+    GEMINI_MODEL: str = Field(
+        default="gemini-3.1-flash-lite",
+        description="Active Gemini model version configured via GEMINI_MODEL environment variable",
+    )
 
     # Session & Quota limits
     MAX_DATASETS_PER_SESSION: int = 5

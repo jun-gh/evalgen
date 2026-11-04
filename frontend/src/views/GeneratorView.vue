@@ -78,22 +78,22 @@ async function handleGenerate() {
 <template>
   <div class="space-y-8 max-w-5xl mx-auto">
     <!-- Navigation back -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-2.5">
       <button
         @click="router.push('/')"
-        class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition"
+        class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition"
       >
         <ArrowLeft class="w-4 h-4" />
         Back to Dashboard
       </button>
 
       <div class="flex items-center gap-2">
-        <div class="flex items-center gap-1.5 text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2.5 py-1 rounded-full">
+        <div class="flex items-center gap-1.5 text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 px-2.5 py-1 rounded-full">
           <Cpu class="w-3.5 h-3.5" />
           Model: {{ evalStore.activeModel }}
         </div>
-        <div class="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full">
-          <ShieldCheck class="w-3.5 h-3.5 text-emerald-400" />
+        <div class="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-full">
+          <ShieldCheck class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           3-Attempt Backoff
         </div>
       </div>
@@ -101,37 +101,37 @@ async function handleGenerate() {
 
     <!-- Header -->
     <div>
-      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
-        <Sparkles class="w-7 h-7 text-emerald-400" />
-        Synthetic Eval Set Generator
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+        <Sparkles class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <span>Synthetic Eval Set Generator</span>
       </h1>
-      <p class="text-sm text-slate-400 mt-1">
+      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
         Prompt Google Gemini ({{ evalStore.activeModel }}) to produce targeted test cases, expected outputs, rubrics, and adversarial edge cases.
       </p>
     </div>
 
     <!-- Preset Selector -->
     <div class="space-y-2">
-      <label class="text-xs uppercase tracking-wider font-semibold text-slate-400">Quick Start Presets:</label>
+      <label class="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">Quick Start Presets:</label>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
         <button
           v-for="p in presets"
           :key="p.title"
           @click="applyPreset(p)"
           type="button"
-          class="p-3 text-left rounded-xl border border-slate-800 bg-slate-900/60 hover:border-emerald-500/50 hover:bg-slate-800/40 transition text-xs"
+          class="p-3 text-left rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 hover:border-emerald-500/50 hover:bg-slate-100 dark:hover:bg-slate-800/40 transition text-xs shadow-sm dark:shadow-none"
         >
-          <div class="font-semibold text-slate-200 line-clamp-1">{{ p.title }}</div>
-          <div class="text-[11px] text-slate-400 mt-1 line-clamp-2">{{ p.scenario }}</div>
+          <div class="font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">{{ p.title }}</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{{ p.scenario }}</div>
         </button>
       </div>
     </div>
 
     <!-- Generation Form Card -->
-    <form @submit.prevent="handleGenerate" class="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8 space-y-6">
+    <form @submit.prevent="handleGenerate" class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4 sm:p-8 space-y-5 sm:space-y-6 shadow-sm">
       <div class="space-y-4">
         <div>
-          <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
+          <label class="block text-xs uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
             Dataset Title
           </label>
           <input
@@ -139,12 +139,12 @@ async function handleGenerate() {
             required
             type="text"
             placeholder="e.g. Healthcare Triage Groundedness Test"
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition"
           />
         </div>
 
         <div>
-          <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
+          <label class="block text-xs uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
             Scenario, System Behaviors & Constraints
           </label>
           <textarea
@@ -152,18 +152,18 @@ async function handleGenerate() {
             required
             rows="4"
             placeholder="Detail the target persona, task difficulty, grading constraints, safety rules..."
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-emerald-500 transition leading-relaxed font-sans"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition leading-relaxed font-sans"
           ></textarea>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
+            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Domain
             </label>
             <select
               v-model="form.domain"
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
             >
               <option value="Customer Support">Customer Support</option>
               <option value="Coding">Coding</option>
@@ -176,12 +176,12 @@ async function handleGenerate() {
           </div>
 
           <div>
-            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
+            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Evaluation Type
             </label>
             <select
               v-model="form.eval_type"
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
             >
               <option value="rag_qa">RAG / Groundedness</option>
               <option value="reasoning">Multi-step Reasoning</option>
@@ -192,9 +192,9 @@ async function handleGenerate() {
           </div>
 
           <div>
-            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5 flex justify-between items-center">
+            <label class="block text-xs uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex justify-between items-center">
               <span>Sample Count</span>
-              <span class="text-emerald-400 font-mono">{{ form.num_samples }} / {{ evalStore.maxSampleCount }} max</span>
+              <span class="text-emerald-600 dark:text-emerald-400 font-mono">{{ form.num_samples }} / {{ evalStore.maxSampleCount }} max</span>
             </label>
             <input
               v-model.number="form.num_samples"
@@ -207,20 +207,20 @@ async function handleGenerate() {
         </div>
 
         <div class="flex flex-wrap items-center gap-6 pt-2">
-          <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+          <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
             <input
               type="checkbox"
               v-model="form.include_adversarial"
-              class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-0 w-4 h-4"
+              class="rounded bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-emerald-500 focus:ring-0 w-4 h-4"
             />
             <span>Include Adversarial & Edge Cases</span>
           </label>
 
-          <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+          <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
             <input
               type="checkbox"
               v-model="form.auto_save"
-              class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-0 w-4 h-4"
+              class="rounded bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-emerald-500 focus:ring-0 w-4 h-4"
             />
             <span>Auto-Save to Database</span>
           </label>
@@ -229,26 +229,26 @@ async function handleGenerate() {
         <!-- Quota Warning if full and auto_save is checked -->
         <div
           v-if="evalStore.isQuotaFull && form.auto_save"
-          class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 flex items-start gap-2.5 text-xs text-amber-200 mt-1"
+          class="rounded-xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3.5 flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200 mt-1"
         >
-          <AlertTriangle class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <AlertTriangle class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <span class="font-semibold text-amber-300">Session Quota Full ({{ evalStore.evalSets.length }}/{{ evalStore.maxDatasets }}):</span>
+            <span class="font-semibold text-amber-800 dark:text-amber-300">Session Quota Full ({{ evalStore.evalSets.length }}/{{ evalStore.maxDatasets }}):</span>
             Your 7-day anonymous session has reached the dataset limit. Uncheck <em>Auto-Save</em> to test synthesis without persisting, or delete an older dataset from your dashboard.
           </div>
         </div>
       </div>
 
-      <div class="border-t border-slate-800 pt-5 flex items-center justify-between">
-        <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5">
-          <Sparkles class="w-3.5 h-3.5 text-emerald-400" />
+      <div class="border-t border-slate-200 dark:border-slate-800 pt-5 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center justify-center sm:justify-start gap-1.5">
+          <Sparkles class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           <span>Powered by Google Gemini ({{ evalStore.activeModel }})</span>
         </div>
 
         <button
           type="submit"
           :disabled="evalStore.isGenerating || (evalStore.isQuotaFull && form.auto_save)"
-          class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-emerald-950 transition"
+          class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-sm shadow-md shadow-emerald-600/20 dark:shadow-emerald-950 transition w-full sm:w-auto"
         >
           <RefreshCw v-if="evalStore.isGenerating" class="w-4 h-4 animate-spin" />
           <Sparkles v-else class="w-4 h-4" />
@@ -259,17 +259,19 @@ async function handleGenerate() {
 
     <!-- Results Section -->
     <div v-if="generatedResult" class="space-y-4 pt-4">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <CheckCircle2 class="w-5 h-5 text-emerald-400" />
-            Generated Test Suite Preview
-            <span class="text-xs font-mono font-normal text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-2">
+            <span class="flex items-center gap-2">
+              <CheckCircle2 class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              Generated Test Suite Preview
+            </span>
+            <span class="text-xs font-mono font-normal text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
               <Cpu class="w-3 h-3" />
               {{ generatedResult.model_used || evalStore.activeModel }}
             </span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {{ generatedResult.dataset.test_cases.length }} test cases synthesized.
           </p>
         </div>
@@ -277,7 +279,7 @@ async function handleGenerate() {
         <RouterLink
           v-if="generatedResult.eval_set_id"
           :to="`/evals/${generatedResult.eval_set_id}`"
-          class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
+          class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition w-full sm:w-auto"
         >
           <Layers class="w-3.5 h-3.5" />
           Open Full Dataset View

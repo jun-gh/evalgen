@@ -1,77 +1,55 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
-import { Sparkles, Layers, Cpu, PlayCircle } from "lucide-vue-next";
-import { useEvalStore } from "@/stores/evalStore";
+import { Sun, Moon } from "lucide-vue-next";
+import { useUiStore } from "@/stores/uiStore";
 
-const evalStore = useEvalStore();
+const uiStore = useUiStore();
 </script>
 
 <template>
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-40 transition-colors">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <RouterLink to="/" class="flex items-center space-x-2.5 group">
-          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500/50 transition">
-            <Sparkles class="w-5 h-5" />
-          </div>
-          <div>
-            <span class="font-bold text-lg tracking-tight text-white flex items-center gap-1.5">
-              EvalGen
-              <span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                v0.1
-              </span>
-              <span
-                class="hidden md:inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-emerald-400 border border-slate-700 font-mono"
-                title="Active Model configured in backend .env"
-              >
-                <Cpu class="w-3 h-3 text-emerald-400" />
-                {{ evalStore.activeModel }}
-              </span>
-            </span>
-          </div>
+          <!-- App Logo: First letter of app name in caps (matches Favicon) -->
+          <svg class="w-8 h-8 rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-150 select-none shrink-0" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="evalgen-nav-logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#047857" />
+              </linearGradient>
+            </defs>
+            <rect width="32" height="32" rx="7" fill="url(#evalgen-nav-logo-grad)" />
+            <text
+              x="16"
+              y="16.5"
+              font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, sans-serif"
+              font-size="21"
+              font-weight="800"
+              fill="#ffffff"
+              text-anchor="middle"
+              dominant-baseline="central"
+            >E</text>
+          </svg>
+          <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">
+            EvalGen
+          </span>
         </RouterLink>
       </div>
 
-      <nav class="flex items-center space-x-1 sm:space-x-3">
-        <RouterLink
-          to="/"
-          class="px-3 py-1.5 rounded-lg text-sm font-medium transition"
-          :class="$route.path === '/' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+      <div class="flex items-center space-x-2">
+        <!-- Light / Dark Theme Toggle Button -->
+        <button
+          @click="uiStore.toggleTheme"
+          type="button"
+          class="p-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center justify-center min-w-[36px] min-h-[36px]"
+          :title="uiStore.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+          :aria-label="uiStore.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
         >
-          <span class="flex items-center gap-1.5">
-            <Layers class="w-4 h-4" />
-            Eval Sets
-          </span>
-        </RouterLink>
-
-        <RouterLink
-          to="/benchmark"
-          class="px-3 py-1.5 rounded-lg text-sm font-medium transition"
-          :class="$route.path.startsWith('/benchmark') ? 'bg-slate-800 text-emerald-400 border border-emerald-800/40' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
-        >
-          <span class="flex items-center gap-1.5">
-            <PlayCircle class="w-4 h-4 text-emerald-400" />
-            Run Benchmark
-          </span>
-        </RouterLink>
-
-        <RouterLink
-          to="/generate"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition flex items-center gap-1.5"
-        >
-          <Sparkles class="w-4 h-4" />
-          New Generation
-        </RouterLink>
-
-        <a
-          href="/api/v1/health"
-          target="_blank"
-          class="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition"
-          title="Backend Health & Cold-Start Status"
-        >
-          <Cpu class="w-4 h-4" />
-        </a>
-      </nav>
+          <Sun v-if="uiStore.theme === 'dark'" class="w-4 h-4 text-amber-400 hover:text-amber-300 transition" />
+          <Moon v-else class="w-4 h-4 text-slate-600 hover:text-slate-900 transition" />
+        </button>
+      </div>
     </div>
   </header>
 </template>

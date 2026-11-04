@@ -50,5 +50,5 @@ class GenerationResponse(BaseModel):
     eval_set_id: Optional[str] = None
     message: str
     dataset: SyntheticGenerationResult
-    model_used: str = "gemini-3.8-flash"
+    model_used: str = Field(default_factory=lambda: settings.GEMINI_MODEL)
     retry_count: int = 0
