@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # Database: SQLite async by default for local dev; Neon Serverless Postgres for prod
+    # Database: PostgreSQL by default for local dev and production
     DATABASE_URL: str = Field(
-        default="sqlite+aiosqlite:///./.data/evalgen.db",
+        default="postgresql+asyncpg://postgres:postgres@localhost:5432/evalgen",
         description="Async database connection string",
     )
 
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
         description="Google Gemini API Key for synthesis and evaluation",
     )
     GEMINI_MODEL: str = Field(
-        default="gemini-3.1-flash-lite",
+        default="gemini-3.5-flash",
         description="Active Gemini model version configured via GEMINI_MODEL environment variable",
     )
 

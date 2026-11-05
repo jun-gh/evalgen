@@ -9,10 +9,16 @@ from app.models.eval_set import EvalSet
 
 def get_session_id(request: Request) -> str:
     """
-    Extracts the anonymous persistent session ID from the X-Session-ID header.
+    Extracts the anonymous persistent session ID from the X-Session-ID header or query parameters.
     Falls back to 'anonymous' if not provided (e.g., direct API docs test).
     """
-    session_id = request.headers.get("x-session-id") or request.headers.get("X-Session-ID") or ""
+    session_id = (
+        request.headers.get("x-session-id")
+        or request.headers.get("X-Session-ID")
+        or request.query_params.get("session_id")
+        or request.query_params.get("X-Session-ID")
+        or ""
+    )
     session_id = session_id.strip()
     return session_id if session_id else "anonymous"
 

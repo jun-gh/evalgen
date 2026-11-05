@@ -103,18 +103,20 @@ export const useEvalStore = defineStore("evals", () => {
   }
 
   async function deleteEvalSet(id: string) {
+    const previous = [...evalSets.value];
+    evalSets.value = evalSets.value.filter((es) => es.id !== id);
+    if (currentEvalSet.value?.id === id) {
+      currentEvalSet.value = null;
+    }
     try {
       await evalService.deleteEvalSet(id);
-      evalSets.value = evalSets.value.filter((es) => es.id !== id);
-      if (currentEvalSet.value?.id === id) {
-        currentEvalSet.value = null;
-      }
       uiStore.addToast({
         type: "success",
         title: "Deleted",
         message: "Evaluation set deleted successfully.",
       });
     } catch (err: any) {
+      evalSets.value = previous;
       console.error("Failed to delete eval set:", err);
     }
   }

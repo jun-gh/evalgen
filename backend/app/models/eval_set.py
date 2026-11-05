@@ -29,12 +29,14 @@ class EvalSet(Base):
         "TestCase",
         back_populates="eval_set",
         cascade="all, delete-orphan",
+        passive_deletes=True,
         lazy="selectin",
     )
     runs: Mapped[List["EvalRun"]] = relationship(
         "EvalRun",
         back_populates="eval_set",
         cascade="all, delete-orphan",
+        passive_deletes=True,
         lazy="selectin",
     )
 
@@ -43,7 +45,7 @@ class TestCase(Base):
     __tablename__ = "test_cases"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    eval_set_id: Mapped[str] = mapped_column(String(36), ForeignKey("eval_sets.id"), nullable=False)
+    eval_set_id: Mapped[str] = mapped_column(String(36), ForeignKey("eval_sets.id", ondelete="CASCADE"), nullable=False)
     prompt_input: Mapped[str] = mapped_column(Text, nullable=False)
     expected_output: Mapped[str] = mapped_column(Text, nullable=False)
     context: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -54,13 +56,18 @@ class TestCase(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     eval_set: Mapped["EvalSet"] = relationship("EvalSet", back_populates="test_cases")
+    evaluation_results: Mapped[List["EvaluationResult"]] = relationship(
+        "EvaluationResult",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class EvalRun(Base):
     __tablename__ = "eval_runs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    eval_set_id: Mapped[str] = mapped_column(String(36), ForeignKey("eval_sets.id"), nullable=False)
+    eval_set_id: Mapped[str] = mapped_column(String(36), ForeignKey("eval_sets.id", ondelete="CASCADE"), nullable=False)
     model_tested: Mapped[str] = mapped_column(String(100), default=lambda: settings.GEMINI_MODEL)
     system_prompt: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="pending")
@@ -74,6 +81,7 @@ class EvalRun(Base):
         "EvaluationResult",
         back_populates="eval_run",
         cascade="all, delete-orphan",
+        passive_deletes=True,
         lazy="selectin",
     )
 
@@ -82,8 +90,8 @@ class EvaluationResult(Base):
     __tablename__ = "evaluation_results"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    eval_run_id: Mapped[str] = mapped_column(String(36), ForeignKey("eval_runs.id"), nullable=False)
-    test_case_id: Mapped[str] = mapped_column(String(36), ForeignKey("test_cases.id"), nullable=False)
+    eval_run_id: Mapped[str] = mapped_column(String(36), ForeignKey("eval_runs.id", ondelete="CASCADE"), nullable=False)
+    test_case_id: Mapped[str] = mapped_column(String(36), ForeignKey("test_cases.id", ondelete="CASCADE"), nullable=False)
     actual_output: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     passed: Mapped[bool] = mapped_column(Boolean, default=False)
     score: Mapped[float] = mapped_column(Float, default=0.0)

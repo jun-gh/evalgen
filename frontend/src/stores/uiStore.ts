@@ -7,8 +7,10 @@ export interface ToastItem {
   type: "error" | "warning" | "success" | "info";
   title: string;
   message: string;
+  code?: string;
   trace_id?: string;
   retryable?: boolean;
+  retry_count?: number;
   onRetry?: () => void;
 }
 
@@ -80,13 +82,18 @@ export const useUiStore = defineStore("ui", () => {
     return id;
   }
 
-  function showError(error: ErrorDetail | { message: string; code?: string; trace_id?: string }, onRetry?: () => void) {
+  function showError(
+    error: ErrorDetail | { message: string; code?: string; trace_id?: string; retryable?: boolean; retry_count?: number },
+    onRetry?: () => void
+  ) {
     return addToast({
       type: "error",
       title: error.code ? `Error: ${error.code}` : "Request Failed",
       message: error.message || "An unexpected error occurred",
+      code: error.code,
       trace_id: error.trace_id,
       retryable: "retryable" in error ? error.retryable : !!onRetry,
+      retry_count: "retry_count" in error ? error.retry_count : 0,
       onRetry,
     });
   }

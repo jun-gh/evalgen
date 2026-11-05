@@ -3,8 +3,8 @@ import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useEvalStore } from "@/stores/evalStore";
 import TestCaseTable from "@/components/evals/TestCaseTable.vue";
-import { Sparkles, ArrowLeft, RefreshCw, Layers, CheckCircle2, AlertTriangle, ShieldCheck, Cpu, Database } from "lucide-vue-next";
-import type { GenerationRequest, GenerationResponse } from "@/types";
+import { Sparkles, ArrowLeft, RefreshCw, Layers, CheckCircle2, AlertTriangle, ShieldCheck, Cpu, Database, AlertOctagon, X, RotateCcw } from "lucide-vue-next";
+import type { GenerationRequest, GenerationResponse, ErrorDetail } from "@/types";
 
 const router = useRouter();
 const evalStore = useEvalStore();
@@ -65,12 +65,16 @@ function applyPreset(preset: typeof presets[0]) {
   form.value.eval_type = preset.type;
 }
 
+const generationError = ref<ErrorDetail | null>(null);
+
 async function handleGenerate() {
+  generationError.value = null;
+  generatedResult.value = null;
   try {
     const res = await evalStore.generateEvals(form.value);
     generatedResult.value = res;
-  } catch (err) {
-    // Errors are already handled and displayed to the UI via uiStore and Axios interceptors!
+  } catch (err: any) {
+    generationError.value = err;
   }
 }
 </script>
@@ -256,6 +260,69 @@ async function handleGenerate() {
         </button>
       </div>
     </form>
+
+    <!-- Error Alert Banner -->
+    <div
+      v-if="generationError"
+      class="rounded-2xl border border-rose-300 dark:border-rose-900/60 bg-rose-50/90 dark:bg-rose-950/40 p-5 sm:p-6 shadow-sm space-y-4"
+    >
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5">
+            <AlertOctagon class="w-5 h-5" />
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="text-sm sm:text-base font-bold text-rose-950 dark:text-rose-100">
+                {{ generationError.code === "RATE_LIMIT_EXCEEDED" ? "Gemini Rate Limit / Quota Exceeded" : generationError.code === "MODEL_CAPACITY_EXCEEDED" ? "Model Capacity Exceeded (503)" : generationError.code === "API_KEY_NOT_CONFIGURED" ? "Gemini API Key Missing" : (generationError.code || "Synthesis Failed") }}
+              </h3>
+              <span
+                v-if="generationError.retry_count"
+                class="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-200/80 dark:bg-rose-900/80 text-rose-900 dark:text-rose-200 font-semibold"
+              >
+                {{ generationError.retry_count }} Retries Exhausted
+              </span>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/80 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                Target: {{ evalStore.activeModel }}
+              </span>
+            </div>
+
+            <p class="text-xs sm:text-sm text-rose-900 dark:text-rose-200 leading-relaxed max-w-3xl">
+              {{ generationError.message }}
+            </p>
+
+            <div class="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-600 dark:text-slate-400 font-mono">
+              <span v-if="generationError.trace_id">trace: {{ generationError.trace_id }}</span>
+              <span v-if="generationError.timestamp">{{ new Date(generationError.timestamp).toLocaleTimeString() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          @click="generationError = null"
+          class="text-rose-400 hover:text-rose-700 dark:hover:text-white p-1 rounded transition shrink-0"
+          title="Dismiss notification"
+        >
+          <X class="w-4 h-4" />
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-rose-200 dark:border-rose-900/50">
+        <button
+          type="button"
+          @click="handleGenerate"
+          :disabled="evalStore.isGenerating"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs shadow-sm transition disabled:opacity-50"
+        >
+          <RotateCcw class="w-3.5 h-3.5" :class="{ 'animate-spin': evalStore.isGenerating }" />
+          Retry Synthesis
+        </button>
+        <span class="text-[11px] text-rose-700 dark:text-rose-300">
+          Tip: You can change the model via <code class="px-1 py-0.5 bg-black/10 dark:bg-black/30 rounded">GEMINI_MODEL</code> in your <code class="px-1 py-0.5 bg-black/10 dark:bg-black/30 rounded">.env</code> file.
+        </span>
+      </div>
+    </div>
 
     <!-- Results Section -->
     <div v-if="generatedResult" class="space-y-4 pt-4">

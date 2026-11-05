@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import pytest
 from httpx import AsyncClient
 
@@ -18,12 +19,18 @@ async def test_import_csv_and_run_benchmark(client: AsyncClient):
     assert len(dataset["test_cases"]) == 2
     eval_set_id = dataset["id"]
 
-    # Run benchmark
-    run_payload = {
-        "system_prompt": "You are a customer support agent. Answer concisely based strictly on provided context.",
-    }
-    run_res = await client.post(f"/api/v1/eval-sets/{eval_set_id}/run", json=run_payload)
-    assert run_res.status_code == 200, run_res.text
+    # Mock Gemini responses for candidate generation and judge evaluation
+    async def mock_generate_response(prompt, system_prompt=None, model_name=None):
+        if "AI Judge" in prompt:
+            return '{"score": 0.95, "passed": true, "feedback": "Accurate response adhering to policy."}'
+        return "Standard return policy is 14 days from delivery."
+
+    with patch("app.services.evaluator.gemini_service.generate_response", side_effect=mock_generate_response):
+        run_payload = {
+            "system_prompt": "You are a customer support agent. Answer concisely based strictly on provided context.",
+        }
+        run_res = await client.post(f"/api/v1/eval-sets/{eval_set_id}/run", json=run_payload)
+        assert run_res.status_code == 200, run_res.text
     run_data = run_res.json()
     assert run_data["eval_set_id"] == eval_set_id
     assert run_data["status"] == "completed"

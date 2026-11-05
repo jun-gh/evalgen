@@ -2,12 +2,12 @@ import csv
 import io
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.exceptions import ResourceNotFoundException, ValidationException
 from app.core.session import get_session_id, get_session_cutoff, check_session_quota
-from app.models.eval_set import EvalSet, TestCase, EvalRun
+from app.models.eval_set import EvalSet, TestCase, EvalRun, EvaluationResult
 from app.schemas.eval_run import BenchmarkRunRequest, EvalRunResponse, EvaluationResultResponse
 from app.schemas.eval_set import (
     EvalSetCreate,
@@ -102,9 +102,11 @@ async def get_eval_set(
     query = (
         select(EvalSet)
         .where(EvalSet.id == eval_set_id)
-        .where(EvalSet.session_id == session_id)
         .where(EvalSet.created_at >= cutoff)
     )
+    if session_id != "anonymous":
+        query = query.where((EvalSet.session_id == session_id) | (EvalSet.session_id == ""))
+
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
@@ -122,15 +124,21 @@ async def delete_eval_set(
     db: AsyncSession = Depends(get_db),
 ):
     session_id = get_session_id(request)
-    query = select(EvalSet).where(EvalSet.id == eval_set_id, EvalSet.session_id == session_id)
+    query = select(EvalSet).where(EvalSet.id == eval_set_id)
+    if session_id != "anonymous":
+        query = query.where((EvalSet.session_id == session_id) | (EvalSet.session_id == ""))
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
         raise ResourceNotFoundException("EvalSet", eval_set_id)
 
+    # 1. Clean up child evaluation results first to prevent FK constraint conflicts between test_cases and runs
+    run_ids_subquery = select(EvalRun.id).where(EvalRun.eval_set_id == eval_set_id)
+    await db.execute(delete(EvaluationResult).where(EvaluationResult.eval_run_id.in_(run_ids_subquery)))
+    # 2. Delete eval set (SQLAlchemy cascades test_cases and eval_runs)
     await db.delete(eval_set)
     await db.commit()
-    return None
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/{eval_set_id}/test-cases", response_model=TestCaseResponse, status_code=status.HTTP_201_CREATED)
@@ -180,9 +188,11 @@ async def export_csv(
     query = (
         select(EvalSet)
         .where(EvalSet.id == eval_set_id)
-        .where(EvalSet.session_id == session_id)
         .where(EvalSet.created_at >= cutoff)
     )
+    if session_id != "anonymous":
+        query = query.where((EvalSet.session_id == session_id) | (EvalSet.session_id == ""))
+
     result = await db.execute(query)
     eval_set = result.scalar_one_or_none()
     if not eval_set:
