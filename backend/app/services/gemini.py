@@ -10,8 +10,8 @@ from app.core.exceptions import (
     ModelCapacityExceededException,
     GeminiConfigurationException,
 )
-from app.core.retry import with_retry, is_retryable_exception
-from app.schemas.generation import GenerationRequest, SyntheticGenerationResult, GeneratedTestCase
+from app.core.retry import with_retry
+from app.schemas.generation import GenerationRequest, SyntheticGenerationResult
 
 logger = logging.getLogger("evalgen.gemini")
 
