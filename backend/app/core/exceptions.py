@@ -61,6 +61,39 @@ class RateLimitExceededException(EvalGenException):
         )
 
 
+class ModelCapacityExceededException(EvalGenException):
+    def __init__(
+        self,
+        message: str = "Google Gemini model is currently overloaded or experiencing high demand. 3 automatic retries were exhausted.",
+        details: Optional[Dict[str, Any]] = None,
+        retry_count: int = 3,
+    ):
+        super().__init__(
+            message=message,
+            code="MODEL_CAPACITY_EXCEEDED",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            details=details,
+            retryable=True,
+            retry_count=retry_count,
+        )
+
+
+class GeminiConfigurationException(EvalGenException):
+    def __init__(
+        self,
+        message: str = "Google Gemini API key is not configured or invalid.",
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            message=message,
+            code="API_KEY_NOT_CONFIGURED",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            details=details,
+            retryable=False,
+            retry_count=0,
+        )
+
+
 class ResourceNotFoundException(EvalGenException):
     def __init__(self, resource: str, resource_id: Any):
         super().__init__(

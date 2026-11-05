@@ -39,7 +39,26 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS Middleware: Configured securely via CORS_ORIGINS environment variable
+@app.middleware("http")
+async def trace_and_timing_middleware(request: Request, call_next):
+    """Injects a unique trace_id into every request and records execution duration."""
+    trace_id = request.headers.get("X-Trace-ID", f"req-{uuid.uuid4().hex[:12]}")
+    request.state.trace_id = trace_id
+
+    start_time = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        logger.error("Unhandled exception processing %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+        raise exc
+
+    duration_ms = (time.perf_counter() - start_time) * 1000
+    response.headers["X-Trace-ID"] = trace_id
+    response.headers["X-Process-Time-Ms"] = f"{duration_ms:.2f}"
+    return response
+
+
+# Outermost Middleware: CORS must be added last so it wraps all responses and exceptions
 cors_origins = (
     settings.CORS_ORIGINS
     if isinstance(settings.CORS_ORIGINS, list)
@@ -49,26 +68,12 @@ cors_origins = (
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_origin_regex=r"https://.*(\.pages\.dev|\.workers\.dev)",
+    allow_origin_regex=r"https://.*(\.pages\.dev|\.workers\.dev)|http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Trace-ID", "X-Process-Time-Ms", "Content-Disposition"],
 )
-
-
-@app.middleware("http")
-async def trace_and_timing_middleware(request: Request, call_next):
-    """Injects a unique trace_id into every request and records execution duration."""
-    trace_id = request.headers.get("X-Trace-ID", f"req-{uuid.uuid4().hex[:12]}")
-    request.state.trace_id = trace_id
-
-    start_time = time.perf_counter()
-    response = await call_next(request)
-    duration_ms = (time.perf_counter() - start_time) * 1000
-
-    response.headers["X-Trace-ID"] = trace_id
-    response.headers["X-Process-Time-Ms"] = f"{duration_ms:.2f}"
-    return response
 
 
 # Register standardized error handlers

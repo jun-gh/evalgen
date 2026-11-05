@@ -38,8 +38,13 @@ const uiStore = useUiStore();
             <h4 class="text-sm font-semibold tracking-tight">{{ toast.title }}</h4>
             <p class="text-xs mt-1 text-slate-700 dark:text-slate-300 leading-relaxed">{{ toast.message }}</p>
 
-            <div v-if="toast.trace_id" class="mt-2 text-[10px] font-mono text-slate-600 bg-slate-200/60 dark:text-slate-400 dark:bg-black/30 px-2 py-0.5 rounded inline-block">
-              trace: {{ toast.trace_id }}
+            <div class="flex flex-wrap items-center gap-1.5 mt-2">
+              <span v-if="toast.retry_count" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-200/80 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                {{ toast.retry_count }} retries exhausted
+              </span>
+              <span v-if="toast.trace_id" class="text-[10px] font-mono text-slate-600 bg-slate-200/60 dark:text-slate-400 dark:bg-black/30 px-2 py-0.5 rounded">
+                trace: {{ toast.trace_id }}
+              </span>
             </div>
 
             <div v-if="toast.retryable && toast.onRetry" class="mt-3">

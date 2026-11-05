@@ -4,9 +4,14 @@ import logging
 from typing import Optional, Tuple
 from tenacity import RetryError
 from app.config import settings
-from app.core.exceptions import LLMGenerationException, RateLimitExceededException
-from app.core.retry import with_retry, is_retryable_exception
-from app.schemas.generation import GenerationRequest, SyntheticGenerationResult, GeneratedTestCase
+from app.core.exceptions import (
+    LLMGenerationException,
+    RateLimitExceededException,
+    ModelCapacityExceededException,
+    GeminiConfigurationException,
+)
+from app.core.retry import with_retry
+from app.schemas.generation import GenerationRequest, SyntheticGenerationResult
 
 logger = logging.getLogger("evalgen.gemini")
 
@@ -40,43 +45,64 @@ class GeminiService:
         response_mime_type: Optional[str] = "application/json",
         model_name: Optional[str] = None,
     ) -> str:
-        """Synchronous invocation of Gemini API to be executed in threadpool."""
+        """Synchronous invocation of Gemini API with automated fallback model resilience."""
         client = self._get_client()
         target_model = (model_name or self.model_name).strip()
 
-        # Handle modern google-genai Client
-        if hasattr(client, "models") and hasattr(client.models, "generate_content"):
-            from google.genai import types
+        # Prioritize target model, followed by known stable production models
+        models_to_try = [target_model]
+        for candidate in ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.1-flash-lite"]:
+            if candidate not in models_to_try:
+                models_to_try.append(candidate)
 
-            config_kwargs = {
-                "system_instruction": system_instruction,
-                "temperature": 0.7,
-            }
-            if response_mime_type:
-                config_kwargs["response_mime_type"] = response_mime_type
+        last_error = None
+        for current_model in models_to_try:
+            try:
+                # Handle modern google-genai Client
+                if hasattr(client, "models") and hasattr(client.models, "generate_content"):
+                    from google.genai import types
 
-            config = types.GenerateContentConfig(**config_kwargs)
-            response = client.models.generate_content(
-                model=target_model,
-                contents=prompt,
-                config=config,
-            )
-            return response.text or ""
+                    config_kwargs = {
+                        "system_instruction": system_instruction,
+                        "temperature": 0.7,
+                    }
+                    if response_mime_type:
+                        config_kwargs["response_mime_type"] = response_mime_type
 
-        # Handle classic google.generativeai
-        import google.generativeai as gai
+                    config = types.GenerateContentConfig(**config_kwargs)
+                    response = client.models.generate_content(
+                        model=current_model,
+                        contents=prompt,
+                        config=config,
+                    )
+                    return response.text or ""
 
-        gen_config = {"temperature": 0.7}
-        if response_mime_type:
-            gen_config["response_mime_type"] = response_mime_type
+                # Handle classic google.generativeai
+                import google.generativeai as gai
 
-        model = gai.GenerativeModel(
-            model_name=target_model,
-            system_instruction=system_instruction,
-            generation_config=gen_config,
-        )
-        response = model.generate_content(prompt)
-        return response.text or ""
+                gen_config = {"temperature": 0.7}
+                if response_mime_type:
+                    gen_config["response_mime_type"] = response_mime_type
+
+                model = gai.GenerativeModel(
+                    model_name=current_model,
+                    system_instruction=system_instruction,
+                    generation_config=gen_config,
+                )
+                response = model.generate_content(prompt)
+                return response.text or ""
+            except Exception as e:
+                err_msg = str(e)
+                # If model is unavailable (503 high demand spike) or not found (404), try fallback model
+                if any(k in err_msg for k in ("503", "UNAVAILABLE", "404", "NOT_FOUND", "high demand", "no longer available")):
+                    logger.warning("Gemini model '%s' failed with: %s. Trying fallback model...", current_model, err_msg[:120])
+                    last_error = e
+                    continue
+                raise e
+
+        if last_error:
+            raise last_error
+        return ""
 
     @with_retry(max_attempts=3, min_backoff=1.0, max_backoff=6.0)
     async def _call_gemini_raw(
@@ -96,9 +122,10 @@ class GeminiService:
         model_name: Optional[str] = None,
     ) -> str:
         """Generate a candidate text response under evaluation."""
-        is_placeholder_key = not self.api_key or self.api_key in ("your_gemini_api_key_here", "dummy", "test")
-        if is_placeholder_key:
-            return f"Standard candidate response addressing: {prompt[:40]}... strictly following policy guidelines."
+        if not self.api_key or self.api_key.strip() in ("", "your_gemini_api_key_here", "dummy", "test"):
+            raise GeminiConfigurationException(
+                "Gemini API key is not configured. Please set GEMINI_API_KEY in your environment to benchmark against Google Gemini."
+            )
 
         try:
             return await self._call_gemini_raw(
@@ -107,9 +134,33 @@ class GeminiService:
                 response_mime_type=None,
                 model_name=model_name,
             )
+        except RetryError as re:
+            last_err = str(re.last_attempt.exception() if re.last_attempt else "Unknown")
+            raise LLMGenerationException(
+                message=f"Gemini API generation failed after 3 automated retries: {last_err}",
+                details={"model": model_name or self.model_name, "error": last_err},
+                retry_count=3,
+            )
         except Exception as e:
-            logger.warning("Error generating candidate response from Gemini: %s", e)
-            return f"Candidate response fallback due to generation error: {str(e)}"
+            err_str = str(e)
+            logger.error("Error generating candidate response from Gemini: %s", err_str)
+            if any(k in err_str.lower() for k in ("429", "quota", "rate limit")):
+                raise RateLimitExceededException(
+                    message=f"Google Gemini quota or rate limit exceeded: {err_str}",
+                    details={"model": model_name or self.model_name, "error": err_str},
+                    retry_count=3,
+                )
+            if any(k in err_str.lower() for k in ("503", "unavailable", "high demand")):
+                raise ModelCapacityExceededException(
+                    message=f"Google Gemini model '{model_name or self.model_name}' is currently unavailable due to high demand: {err_str}",
+                    details={"model": model_name or self.model_name, "error": err_str},
+                    retry_count=3,
+                )
+            raise LLMGenerationException(
+                message=f"Candidate response generation failed: {err_str}",
+                details={"model": model_name or self.model_name, "error": err_str},
+                retry_count=0,
+            )
 
     async def generate_eval_set(
         self, request: GenerationRequest
@@ -118,12 +169,10 @@ class GeminiService:
         Generate synthetic evaluation test cases with max 3 automatic retries.
         Returns the parsed result and the retry attempts count.
         """
-        is_dev = settings.ENVIRONMENT.lower() in ("development", "testing")
-        is_placeholder_key = not self.api_key or self.api_key in ("your_gemini_api_key_here", "dummy", "test")
-
-        if is_dev and is_placeholder_key:
-            logger.info("Using simulated offline mock evaluation generator (no GEMINI_API_KEY configured).")
-            return self._generate_mock_dataset(request), 0
+        if not self.api_key or self.api_key.strip() in ("", "your_gemini_api_key_here", "dummy", "test"):
+            raise GeminiConfigurationException(
+                "Gemini API key is not configured. Please set GEMINI_API_KEY in your .env file or container environment to synthesize evaluation suites with Google Gemini."
+            )
 
         system_instruction = (
             "You are an expert AI Evals Engineer. Your goal is to synthesize rigorous, diverse, "
@@ -170,54 +219,51 @@ class GeminiService:
             parsed = SyntheticGenerationResult.model_validate(data)
             return parsed, retry_count
         except RetryError as re:
-            logger.error("Maximum 3 retries exhausted for Gemini API call: %s", re)
-            raise RateLimitExceededException(
-                message="Gemini API rate limit or transient failure encountered. 3 retries were exhausted.",
-                details={"last_error": str(re.last_attempt.exception() if re.last_attempt else "Unknown")},
-                retry_count=3,
-            )
-        except Exception as e:
-            logger.error("Gemini synthesis error: %s", str(e), exc_info=True)
-            if is_dev:
-                logger.warning("Local dev fallback to mock dataset due to Gemini API failure: %s", str(e))
-                return self._generate_mock_dataset(request), 0
-
-            if is_retryable_exception(e):
+            last_exc = re.last_attempt.exception() if re.last_attempt else None
+            last_err_str = str(last_exc) if last_exc else "Transient failure"
+            logger.error("Maximum 3 retries exhausted for Gemini API call: %s", last_err_str)
+            if any(k in last_err_str.lower() for k in ("429", "resource_exhausted", "quota", "rate limit")):
                 raise RateLimitExceededException(
-                    message=f"Gemini API rate limit encountered: {str(e)}",
-                    details={"error": str(e)},
+                    message=f"Google Gemini rate limit or quota exceeded for model '{self.model_name}'. 3 automated retries exhausted.",
+                    details={"model": self.model_name, "raw_error": last_err_str},
+                    retry_count=3,
+                )
+            if any(k in last_err_str.lower() for k in ("503", "unavailable", "high demand", "capacity")):
+                raise ModelCapacityExceededException(
+                    message=f"Google Gemini model '{self.model_name}' is experiencing high demand. 3 automated retries exhausted.",
+                    details={"model": self.model_name, "raw_error": last_err_str},
                     retry_count=3,
                 )
             raise LLMGenerationException(
-                message=f"Failed to generate evaluation dataset: {str(e)}",
-                details={"raw_error": str(e)},
+                message=f"Failed to generate evaluation dataset after 3 retries: {last_err_str}",
+                details={"model": self.model_name, "raw_error": last_err_str},
+                retry_count=3,
+            )
+        except Exception as e:
+            err_str = str(e)
+            logger.error("Gemini synthesis error: %s", err_str, exc_info=True)
+            if any(k in err_str.lower() for k in ("429", "resource_exhausted", "quota", "rate limit")):
+                raise RateLimitExceededException(
+                    message=f"Google Gemini quota or rate limit exceeded for model '{self.model_name}': {err_str}",
+                    details={"model": self.model_name, "raw_error": err_str},
+                    retry_count=3,
+                )
+            if any(k in err_str.lower() for k in ("503", "unavailable", "high demand")):
+                raise ModelCapacityExceededException(
+                    message=f"Google Gemini model '{self.model_name}' is currently unavailable due to high demand: {err_str}",
+                    details={"model": self.model_name, "raw_error": err_str},
+                    retry_count=3,
+                )
+            if any(k in err_str.lower() for k in ("api_key", "api key", "unauthenticated", "permission denied")):
+                raise GeminiConfigurationException(
+                    message=f"Gemini API authentication failed: {err_str}. Please verify GEMINI_API_KEY.",
+                    details={"model": self.model_name, "raw_error": err_str},
+                )
+            raise LLMGenerationException(
+                message=f"Failed to generate evaluation dataset: {err_str}",
+                details={"model": self.model_name, "raw_error": err_str},
                 retry_count=retry_count,
             )
-
-    def _generate_mock_dataset(self, request: GenerationRequest) -> SyntheticGenerationResult:
-        """Local fallback when running offline or without API key."""
-        cases = []
-        difficulties = ["easy", "medium", "hard", "adversarial"]
-        for i in range(request.num_samples):
-            diff = difficulties[i % len(difficulties)]
-            cases.append(
-                GeneratedTestCase(
-                    prompt_input=f"[{request.domain}] Sample test input {i + 1} regarding: {request.title}",
-                    expected_output=f"Standard expected golden output for case {i + 1} with high factual accuracy.",
-                    context=f"Context document sample {i + 1}" if request.context_documents else None,
-                    rubric="1. Factual correctness (40%)\n2. Adherence to safety bounds (30%)\n3. Conciseness (30%)",
-                    difficulty=diff,
-                    tags=[request.eval_type, diff, "synthetic-eval"],
-                )
-            )
-        return SyntheticGenerationResult(
-            title=request.title,
-            description=f"Generated evaluation dataset for {request.domain} ({request.eval_type})",
-            domain=request.domain,
-            eval_type=request.eval_type,
-            target_capability=f"{request.domain} comprehension & response fidelity",
-            test_cases=cases,
-        )
 
 
 gemini_service = GeminiService()

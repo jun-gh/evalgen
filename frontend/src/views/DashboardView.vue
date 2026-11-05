@@ -27,8 +27,12 @@ function handleFilter() {
   evalStore.loadEvalSets(domain);
 }
 
-function getDownloadUrl(id: string) {
-  return evalService.getExportCsvUrl(id);
+async function handleExportCsv(es: { id: string; title: string }) {
+  try {
+    await evalService.downloadCsv(es.id, es.title);
+  } catch (err) {
+    console.error("Failed to export CSV:", err);
+  }
 }
 </script>
 
@@ -165,14 +169,14 @@ function getDownloadUrl(id: string) {
 
         <div class="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-950/40 px-5 py-3 flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <a
-              :href="getDownloadUrl(es.id)"
-              download
+            <button
+              type="button"
+              @click="handleExportCsv(es)"
               class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition"
               title="Download CSV export"
             >
               <FileDown class="w-4 h-4" />
-            </a>
+            </button>
             <button
               @click="evalStore.deleteEvalSet(es.id)"
               class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition"

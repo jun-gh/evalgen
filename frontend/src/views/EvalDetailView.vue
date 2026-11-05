@@ -16,8 +16,13 @@ onMounted(() => {
   evalStore.loadEvalSet(evalSetId);
 });
 
-function getDownloadUrl() {
-  return evalService.getExportCsvUrl(evalSetId);
+async function handleExportCsv() {
+  try {
+    const title = evalStore.currentEvalSet?.title || evalSetId;
+    await evalService.downloadCsv(evalSetId, title);
+  } catch (err) {
+    console.error("Failed to export CSV:", err);
+  }
 }
 
 async function handleDelete() {
@@ -86,14 +91,14 @@ async function handleDelete() {
             Run Benchmark
           </RouterLink>
 
-          <a
-            :href="getDownloadUrl()"
-            download
+          <button
+            type="button"
+            @click="handleExportCsv"
             class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs border border-slate-300 dark:border-slate-700 transition"
           >
             <FileDown class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Export CSV
-          </a>
+          </button>
 
           <button
             @click="handleDelete"

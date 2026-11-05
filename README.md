@@ -82,7 +82,7 @@ AI engineering teams use EvalGen to move away from unscientific **"vibe checks"*
            v                                                                  v
 +---------------------+                                            +---------------------+
 |  Google Gemini API  |                                            | Storage & State     |
-|  - Gemini 2.5 Flash |                                            | - Dev: SQLite Async |
+|  - Gemini 3.1 Flash |                                            | - Dev: Docker PG    |
 |  - JSON Schema Mode |                                            | - Prod: Neon Server |
 |  - Few-shot Synthes |                                            |   less PostgreSQL   |
 +---------------------+                                            +---------------------+
@@ -103,7 +103,7 @@ AI engineering teams use EvalGen to move away from unscientific **"vibe checks"*
 | Component | Technology | Zero-Cost Deployment Rationale |
 | :--- | :--- | :--- |
 | **Backend API** | Python 3.11+, FastAPI, Pydantic v2 | High concurrency, native async, strict validation. |
-| **Local Storage** | SQLite (`aiosqlite`) | Zero-setup, instant local development file storage. |
+| **Local Database** | PostgreSQL 16 Alpine (`asyncpg` via Docker) | Full local-to-production parity matching Neon PostgreSQL without schema or constraint discrepancies. |
 | **Production DB** | Neon Serverless Postgres (`asyncpg`) | True scale-to-zero serverless PostgreSQL with instant branching. |
 | **AI Layer** | Google Gemini API (`google-genai`) | Low latency, generous free-tier quotas, structured JSON outputs. |
 | **Tool Protocol** | Model Context Protocol (`mcp`) | Standardized tool context retrieval and validation. |
@@ -168,27 +168,30 @@ All transient external interactions (LLM generation, rate limits, network resets
 
 ```
 evalgen/
+├── docker-compose.yml              # Local orchestration (PostgreSQL 16, Backend, Frontend)
+├── .env.example                    # Root environment variables template for Docker
 ├── backend/
 │   ├── app/
 │   │   ├── api/v1/endpoints/       # Health, EvalSets, Generator, MCP tools
-│   │   ├── core/                   # Database (SQLite/Neon), Exceptions, 3-Retry logic
-│   │   ├── models/                 # SQLAlchemy 2.0 ORM models
+│   │   ├── core/                   # Database (PostgreSQL/Neon), Exceptions, 3-Retry logic
+│   │   ├── models/                 # SQLAlchemy 2.0 ORM models with cascading deletes
 │   │   ├── schemas/                # Pydantic v2 validation models & ErrorEnvelope
 │   │   ├── services/               # Gemini API client, MCP manager, Evaluator
 │   │   ├── config.py               # Settings and environment overrides
 │   │   └── main.py                 # FastAPI lifespan, CORS, and request tracing
-│   ├── tests/                      # Pytest suite (health, max-3 retries, eval sets)
+│   ├── tests/                      # Pytest suite (health, max-3 retries, eval sets, cascades)
 │   ├── Dockerfile                  # Multi-stage production container
 │   ├── pyproject.toml              # Dependencies & tool configurations
 │   ├── requirements.txt            # Locked requirements
 │   └── .env.example
 ├── frontend/
+│   ├── Dockerfile                  # Node 20 development container
 │   ├── src/
 │   │   ├── components/common/      # Navbar, ErrorToast, ServerWakeupBanner
 │   │   ├── components/evals/       # TestCaseTable, Rubrics, Assertions
 │   │   ├── services/               # Axios API client with 3-retry interceptor
 │   │   ├── stores/                 # Pinia stores (evalStore, uiStore)
-│   │   ├── views/                  # DashboardView, GeneratorView, EvalDetailView
+│   │   ├── views/                  # DashboardView, GeneratorView, EvalDetailView, BenchmarkView
 │   │   ├── App.vue
 │   │   └── main.ts
 │   ├── index.html
@@ -208,43 +211,87 @@ evalgen/
 ## 7. Local Development Quickstart
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 20+ and npm
+- [Docker & Docker Compose](https://docs.docker.com/get-docker/) (Recommended)
+- Or Python 3.11+ and Node.js 20+
 
-### 7.1 Backend Setup
+---
+
+### 7.1 Environment Configuration
+Copy the environment template files for both the root Docker setup and local backend:
+
 ```bash
-cd backend
-
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
+# 1. Root environment for Docker Compose
 cp .env.example .env
-# Edit .env and insert your GEMINI_API_KEY (optional for mock mode)
 
-# Run migrations / start server
-uvicorn app.main:app --reload --port 8000
+# 2. Backend environment
+cp backend/.env.example backend/.env
 ```
-API Documentation will be available local at [http://localhost:8000/docs](http://localhost:8000/docs).
-API is now live at **https://evalgen-backend.onrender.com/api/v1**  
-Interactive docs: **https://evalgen-backend.onrender.com/docs**
 
-### 7.2 Frontend Setup
+Open `.env` and `backend/.env` and configure your Google Gemini API key:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+---
+
+### 7.2 Option A: Full-Stack Docker Compose (Recommended)
+Spin up PostgreSQL 16, the FastAPI backend (with code hot-reload), and the Vue 3 frontend in a single command:
+
 ```bash
-cd frontend
+# Build and start all 3 services
+docker compose up --build
 
-# Install all dependencies
-npm install
-
-# Start Vite development server
-npm run dev
+# Or start in detached background mode
+docker compose up -d
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-Frontend is now live at **https://evalgen.jmco.workers.dev**
+
+**Active Local Services**:
+- **Frontend Studio UI**: [http://localhost:5173](http://localhost:5173)
+- **Backend API Docs (Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Backend Health Check**: [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
+- **PostgreSQL Database**: `localhost:5432` (`postgres:postgres`, DB: `evalgen`)
+
+---
+
+### 7.3 Option B: Local Python & Vite with Docker PostgreSQL
+
+For interactive debugging and rapid local iteration:
+
+1. **Start the PostgreSQL Container**:
+   ```bash
+   docker compose up -d postgres
+   ```
+   PostgreSQL 16 will start with a built-in health check and persist data in the `postgres_data` volume.
+
+2. **Start the FastAPI Backend**:
+   ```bash
+   cd backend
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+
+   # Start Uvicorn with auto-reload
+   uvicorn app.main:app --reload --port 8000
+   ```
+   *Note: On startup, `init_db()` automatically checks database connectivity and initializes tables and schema constraints.*
+
+3. **Start the Vue 3 Frontend**:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+### 7.4 Database Parity & Cascading Architecture
+
+EvalGen uses **PostgreSQL 16 Alpine (`asyncpg`)** in local development to guarantee strict parity with production (Neon Serverless PostgreSQL on Render):
+- **Identical Dialect & Behavior**: Eliminates SQLite-to-PostgreSQL incompatibilities with JSON fields, timestamps, and foreign key enforcement.
+- **Cascading Referential Integrity**: All relationships (`EvalSet` $\rightarrow$ `TestCase`, `EvalRun` $\rightarrow$ `EvaluationResult`) enforce `ON DELETE CASCADE`. Deleting an evaluation set cleanly cleans up all associated runs and results.
+- **Zero Manual Migrations**: SQLAlchemy 2.0 automatically verifies and provisions missing tables and columns on application startup.
 
 ---
 

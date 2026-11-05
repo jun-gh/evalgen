@@ -18,8 +18,11 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronUp,
+  AlertOctagon,
+  X,
+  RotateCcw,
 } from "lucide-vue-next";
-import type { BenchmarkRunRequest, EvalRun } from "@/types";
+import type { BenchmarkRunRequest, EvalRun, ErrorDetail } from "@/types";
 
 const route = useRoute();
 const router = useRouter();
@@ -142,6 +145,8 @@ async function uploadFile(file: File) {
   }
 }
 
+const benchmarkError = ref<ErrorDetail | null>(null);
+
 async function handleRunBenchmark() {
   if (!selectedEvalSetId.value) {
     uiStore.addToast({
@@ -151,6 +156,8 @@ async function handleRunBenchmark() {
     });
     return;
   }
+
+  benchmarkError.value = null;
 
   const payload: BenchmarkRunRequest = {
     system_prompt: candidatePrompt.value,
@@ -168,7 +175,7 @@ async function handleRunBenchmark() {
       });
     }
   } catch (err: any) {
-    // Already toasted by store/axios interceptor
+    benchmarkError.value = err;
   }
 }
 
@@ -352,6 +359,69 @@ function toggleCard(id: string) {
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Error Alert Banner -->
+    <div
+      v-if="benchmarkError"
+      class="rounded-2xl border border-rose-300 dark:border-rose-900/60 bg-rose-50/90 dark:bg-rose-950/40 p-5 sm:p-6 shadow-sm space-y-4"
+    >
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5">
+            <AlertOctagon class="w-5 h-5" />
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="text-sm sm:text-base font-bold text-rose-950 dark:text-rose-100">
+                {{ benchmarkError.code === "RATE_LIMIT_EXCEEDED" ? "Gemini Rate Limit / Quota Exceeded" : benchmarkError.code === "MODEL_CAPACITY_EXCEEDED" ? "Model Capacity Exceeded (503)" : benchmarkError.code === "API_KEY_NOT_CONFIGURED" ? "Gemini API Key Missing" : (benchmarkError.code || "Benchmark Run Failed") }}
+              </h3>
+              <span
+                v-if="benchmarkError.retry_count"
+                class="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-200/80 dark:bg-rose-900/80 text-rose-900 dark:text-rose-200 font-semibold"
+              >
+                {{ benchmarkError.retry_count }} Retries Exhausted
+              </span>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/80 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                Target: {{ evalStore.activeModel }}
+              </span>
+            </div>
+
+            <p class="text-xs sm:text-sm text-rose-900 dark:text-rose-200 leading-relaxed max-w-3xl">
+              {{ benchmarkError.message }}
+            </p>
+
+            <div class="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-600 dark:text-slate-400 font-mono">
+              <span v-if="benchmarkError.trace_id">trace: {{ benchmarkError.trace_id }}</span>
+              <span v-if="benchmarkError.timestamp">{{ new Date(benchmarkError.timestamp).toLocaleTimeString() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          @click="benchmarkError = null"
+          class="text-rose-400 hover:text-rose-700 dark:hover:text-white p-1 rounded transition shrink-0"
+          title="Dismiss notification"
+        >
+          <X class="w-4 h-4" />
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-rose-200 dark:border-rose-900/50">
+        <button
+          type="button"
+          @click="handleRunBenchmark"
+          :disabled="evalStore.isBenchmarking"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs shadow-sm transition disabled:opacity-50"
+        >
+          <RotateCcw class="w-3.5 h-3.5" :class="{ 'animate-spin': evalStore.isBenchmarking }" />
+          Retry Benchmark
+        </button>
+        <span class="text-[11px] text-rose-700 dark:text-rose-300">
+          Transient Gemini rate limits or capacity spikes automatically retry 3 times with exponential backoff before reporting.
+        </span>
       </div>
     </div>
 

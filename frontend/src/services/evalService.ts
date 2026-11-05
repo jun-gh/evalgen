@@ -1,4 +1,5 @@
 import { apiClient } from "./api";
+import { getSessionId } from "./session";
 import type { EvalSet, GenerationRequest, GenerationResponse, AppConfig, EvalRun, BenchmarkRunRequest } from "@/types";
 
 export const evalService = {
@@ -65,7 +66,24 @@ export const evalService = {
 
   getExportCsvUrl(id: string): string {
     const base = apiClient.defaults.baseURL || "/api/v1";
-    return `${base}/eval-sets/${id}/export/csv`;
+    const sessionId = getSessionId();
+    return `${base}/eval-sets/${id}/export/csv?session_id=${encodeURIComponent(sessionId)}`;
+  },
+
+  async downloadCsv(id: string, title?: string): Promise<void> {
+    const res = await apiClient.get(`/eval-sets/${id}/export/csv`, {
+      responseType: "blob",
+    });
+    const blob = new Blob([res.data], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const safeTitle = title ? title.replace(/\s+/g, "_").toLowerCase() : id;
+    link.setAttribute("download", `evalset_${safeTitle}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 
   async importCsv(file: File): Promise<EvalSet> {
