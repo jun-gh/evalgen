@@ -4,6 +4,22 @@
 
 ---
 
+## Table of Contents
+
+- [1. The Iterative Evals-Driven Development (Prompt TDD) Cycle](#1-the-iterative-evals-driven-development-prompt-tdd-cycle)
+- [2. System Architecture](#2-system-architecture)
+- [3. Tech Stack & Zero-Cost Cloud Strategy](#3-tech-stack--zero-cost-cloud-strategy)
+- [4. Session-Based Dataset Isolation & Runtime Quotas (Zero Login)](#4-session-based-dataset-isolation--runtime-quotas-zero-login)
+- [5. Error Handling & Resilience Best Practices](#5-error-handling--resilience-best-practices)
+- [6. Repository Structure](#6-repository-structure)
+- [7. Local Development Quickstart](#7-local-development-quickstart)
+- [8. Running Tests](#8-running-tests)
+- [9. Running Benchmarks (In-Browser Studio & CLI)](#9-running-benchmarks-in-browser-studio--cli)
+- [10. Zero-Cost Cloud Deployment Runbook](#10-zero-cost-cloud-deployment-runbook)
+- [11. License & Commercial Inquiries](#11-license--commercial-inquiries)
+
+---
+
 ## 1. The Iterative Evals-Driven Development (Prompt TDD) Cycle
 
 AI engineering teams use EvalGen to move away from unscientific **"vibe checks"** (tweaking prompts and hoping nothing broke) to disciplined **Test-Driven Development (TDD) for LLMs**.
@@ -384,6 +400,11 @@ backend/.venv/bin/python evals/run_evals.py evals/dataset.csv
    - `RENDER_DEPLOY_HOOK_URL`
 4. Pushing to `main` will automatically trigger GHCR container build, Render deploy, and Cloudflare Pages direct upload!
 
-## License
+## 11. License & Commercial Inquiries
 
-MIT
+Copyright © 2026-present Martin Abanes. All rights reserved.
+
+- **Non-Commercial Use**: Free for personal inspection, research, and non-commercial evaluation.
+- **Commercial Use**: Commercial deployment, white-labeling, or client integration requires an explicit commercial agreement or engagement.
+
+For freelance consulting or commercial licensing inquiries, contact Martin Abanes at [miabanes@gmail.com](mailto:miabanes@gmail.com).
