@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EvalGen Topology - The Complete AI Evaluation Stack</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.18); opacity: 0.25; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -32; }
+    }
+    @keyframes floatPacket {
+      0% { offset-distance: 0%; opacity: 0.2; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { offset-distance: 100%; opacity: 0.2; }
+    }
+    .pulse-ring {
+      animation: pulseRing 2.4s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .flow-line {
+      stroke-dasharray: 6 6;
+      animation: dashFlow 1.6s linear infinite;
+    }
+    .flow-reverse {
+      stroke-dasharray: 6 6;
+      animation: dashFlow 1.6s linear infinite reverse;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 p-3 sm:p-6 flex flex-col items-center justify-center min-h-screen font-sans text-slate-900 dark:text-slate-100">
+
+  <!-- Main Poster Frame (Matches LinkedIn Infographic Proportions 4:5 / 3:4) -->
+  <div class="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 relative overflow-hidden">
+    
+    <!-- Top Header Branding (Centered) -->
+    <div class="flex flex-col items-center justify-center text-center border-b border-slate-100 dark:border-slate-800 pb-5 space-y-2">
+      <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="w-5 h-5 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-black text-xs shadow-sm">
+          E
+        </div>
+        <span class="text-xs uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400">EvalGen Studio</span>
+        <span class="text-slate-300 dark:text-slate-600">•</span>
+        <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Everything Evals. One Open Platform.</span>
+      </div>
+    </div>
+
+    <!-- Title Section (Centered) -->
+    <div class="text-center pt-6 pb-4 space-y-2.5 flex flex-col items-center justify-center">
+      <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-emerald-600 dark:text-emerald-400 uppercase text-center w-full">
+        EvalGen Architecture & Topology
+      </h1>
+      <p class="text-base sm:text-xl font-bold text-slate-900 dark:text-white text-center max-w-2xl mx-auto">
+        The Complete Full-Stack AI Evaluation & Benchmarking Engine
+      </p>
+      <div class="h-1.5 w-24 bg-emerald-500 rounded-full mx-auto mt-2"></div>
+    </div>
+
+    <!-- Central SVG Topology Diagram -->
+    <div class="w-full overflow-x-auto py-4">
+      <svg viewBox="0 0 960 780" class="w-full h-auto min-w-[850px] select-none">
+        <defs>
+          <!-- Gradients -->
+          <linearGradient id="gradEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#10b981" />
+            <stop offset="100%" stop-color="#059669" />
+          </linearGradient>
+          <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3b82f6" />
+            <stop offset="100%" stop-color="#2563eb" />
+          </linearGradient>
+          <linearGradient id="gradPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#a855f7" />
+            <stop offset="100%" stop-color="#7c3aed" />
+          </linearGradient>
+          <linearGradient id="gradAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f59e0b" />
+            <stop offset="100%" stop-color="#d97706" />
+          </linearGradient>
+          <linearGradient id="gradTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#14b8a6" />
+            <stop offset="100%" stop-color="#0d9488" />
+          </linearGradient>
+          <linearGradient id="gradIndigo" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="100%" stop-color="#4f46e5" />
+          </linearGradient>
+          <linearGradient id="gradCore" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0284c7" />
+            <stop offset="100%" stop-color="#0369a1" />
+          </linearGradient>
+          <!-- Drop Shadow Filter -->
+          <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.1" />
+          </filter>
+        </defs>
+
+        <!-- ================= ORTHOGONAL CONNECTION PATHS ================= -->
+        <!-- Center Hub to Top Left (Synthetic Gen) -->
+        <path d="M 480 650 L 480 570 L 320 570 L 320 180" fill="none" stroke="#cbd5e1" stroke-width="2.5" />
+        <path d="M 480 650 L 480 570 L 320 570 L 320 180" fill="none" stroke="#10b981" stroke-width="2.5" class="flow-line" />
+
+        <!-- Center Hub to Mid Left (Benchmarking & Judge) -->
+        <path d="M 480 650 L 480 570 L 330 570 L 330 380" fill="none" stroke="#cbd5e1" stroke-width="2.5" />
+        <path d="M 480 650 L 480 570 L 330 570 L 330 380" fill="none" stroke="#3b82f6" stroke-width="2.5" class="flow-line" />
+
+        <!-- Center Hub to Bottom Left (Context & MCP) -->
+        <path d="M 480 650 L 480 570 L 320 570" fill="none" stroke="#cbd5e1" stroke-width="2.5" />
+        <path d="M 480 650 L 480 570 L 320 570" fill="none" stroke="#a855f7" stroke-width="2.5" class="flow-line" />
+
+        <!-- Center Hub to Top Right (Resilience & Retries) -->
+        <path d="M 480 650 L 480 570 L 640 570 L 640 180" fill="none" stroke="#cbd5e1" stroke-width="2.5" />
+        <path d="M 480 650 L 480 570 L 640 570 L 640 180" fill="none" stroke="#f59e0b" stroke-width="2.5" class="flow-line" />
+
+        <!-- Center Hub to Mid Right (Storage & State) -->
+        <path d="M 480 650 L 480 570 L 630 570 L 630 380" fill="none" stroke="#cbd5e1" stroke-width="2.5" />
+        <path d="M 480 650 L 480 570 L 630 570 L 630 380" fill="none" stroke="#14b8a6" stroke-width="2.5" class="flow-line" />
+
+        <!-- Center Hub to Bottom Right (Cloud Infra) -->
+        <path d="M 480 650 L 480 570 L 640 570" fill="none" stroke="#cbd5e1" stroke-width="2.5" />
+        <path d="M 480 650 L 480 570 L 640 570" fill="none" stroke="#6366f1" stroke-width="2.5" class="flow-line" />
+
+        <!-- Connection Branch from Nodes to Pills -->
+        <!-- Left 1 to pill list -->
+        <path d="M 270 180 L 195 180" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3" />
+        <path d="M 195 120 L 195 240" fill="none" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="130" x2="180" y2="130" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="180" x2="180" y2="180" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="230" x2="180" y2="230" stroke="#94a3b8" stroke-width="2" />
+
+        <!-- Left 2 to pill list -->
+        <path d="M 280 380 L 195 380" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3" />
+        <path d="M 195 320 L 195 440" fill="none" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="330" x2="180" y2="330" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="380" x2="180" y2="380" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="430" x2="180" y2="430" stroke="#94a3b8" stroke-width="2" />
+
+        <!-- Left 3 to pill list -->
+        <path d="M 270 570 L 195 570" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3" />
+        <path d="M 195 510 L 195 630" fill="none" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="520" x2="180" y2="520" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="570" x2="180" y2="570" stroke="#94a3b8" stroke-width="2" />
+        <line x1="195" y1="620" x2="180" y2="620" stroke="#94a3b8" stroke-width="2" />
+
+        <!-- Right 1 to pill list -->
+        <path d="M 690 180 L 765 180" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3" />
+        <path d="M 765 120 L 765 240" fill="none" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="130" x2="780" y2="130" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="180" x2="780" y2="180" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="230" x2="780" y2="230" stroke="#94a3b8" stroke-width="2" />
+
+        <!-- Right 2 to pill list -->
+        <path d="M 680 380 L 765 380" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3" />
+        <path d="M 765 320 L 765 440" fill="none" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="330" x2="780" y2="330" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="380" x2="780" y2="380" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="430" x2="780" y2="430" stroke="#94a3b8" stroke-width="2" />
+
+        <!-- Right 3 to pill list -->
+        <path d="M 690 570 L 765 570" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3" />
+        <path d="M 765 510 L 765 630" fill="none" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="520" x2="780" y2="520" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="570" x2="780" y2="570" stroke="#94a3b8" stroke-width="2" />
+        <line x1="765" y1="620" x2="780" y2="620" stroke="#94a3b8" stroke-width="2" />
+
+        <!-- ================= CIRCULAR CAPABILITY NODES ================= -->
+
+        <!-- 1. Synthetic Generation (Top Left - Emerald) -->
+        <g transform="translate(320, 180)">
+          <circle cx="0" cy="0" r="58" fill="none" stroke="#10b981" stroke-width="2" class="pulse-ring" />
+          <circle cx="0" cy="0" r="48" fill="url(#gradEmerald)" filter="url(#shadow)" />
+          <text x="0" y="-12" font-size="20" text-anchor="middle">✨</text>
+          <text x="0" y="8" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Synthetic</text>
+          <text x="0" y="24" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">Generation</text>
+        </g>
+
+        <!-- 2. Benchmarking & Judge (Mid Left - Blue) -->
+        <g transform="translate(330, 380)">
+          <circle cx="0" cy="0" r="58" fill="none" stroke="#3b82f6" stroke-width="2" class="pulse-ring" />
+          <circle cx="0" cy="0" r="48" fill="url(#gradBlue)" filter="url(#shadow)" />
+          <text x="0" y="-12" font-size="20" text-anchor="middle">⚖️</text>
+          <text x="0" y="8" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">LLM-as-a-Judge</text>
+          <text x="0" y="24" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">Benchmarking</text>
+        </g>
+
+        <!-- 3. Context & Protocols (Bottom Left - Purple) -->
+        <g transform="translate(320, 570)">
+          <circle cx="0" cy="0" r="58" fill="none" stroke="#a855f7" stroke-width="2" class="pulse-ring" />
+          <circle cx="0" cy="0" r="48" fill="url(#gradPurple)" filter="url(#shadow)" />
+          <text x="0" y="-12" font-size="20" text-anchor="middle">🔌</text>
+          <text x="0" y="8" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Context & MCP</text>
+          <text x="0" y="24" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">Protocols</text>
+        </g>
+
+        <!-- 4. Resilience & Error Handling (Top Right - Amber) -->
+        <g transform="translate(640, 180)">
+          <circle cx="0" cy="0" r="58" fill="none" stroke="#f59e0b" stroke-width="2" class="pulse-ring" />
+          <circle cx="0" cy="0" r="48" fill="url(#gradAmber)" filter="url(#shadow)" />
+          <text x="0" y="-12" font-size="20" text-anchor="middle">🛡️</text>
+          <text x="0" y="8" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Resilience &</text>
+          <text x="0" y="24" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">3-Retry Backoff</text>
+        </g>
+
+        <!-- 5. Storage & State (Mid Right - Teal) -->
+        <g transform="translate(630, 380)">
+          <circle cx="0" cy="0" r="58" fill="none" stroke="#14b8a6" stroke-width="2" class="pulse-ring" />
+          <circle cx="0" cy="0" r="48" fill="url(#gradTeal)" filter="url(#shadow)" />
+          <text x="0" y="-12" font-size="20" text-anchor="middle">🗄️</text>
+          <text x="0" y="8" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">PostgreSQL 16</text>
+          <text x="0" y="24" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">& Session State</text>
+        </g>
+
+        <!-- 6. Zero-Cost Cloud Infra (Bottom Right - Indigo) -->
+        <g transform="translate(640, 570)">
+          <circle cx="0" cy="0" r="58" fill="none" stroke="#6366f1" stroke-width="2" class="pulse-ring" />
+          <circle cx="0" cy="0" r="48" fill="url(#gradIndigo)" filter="url(#shadow)" />
+          <text x="0" y="-12" font-size="20" text-anchor="middle">☁️</text>
+          <text x="0" y="8" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Cloud-Native</text>
+          <text x="0" y="24" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">Zero-Cost Infra</text>
+        </g>
+
+        <!-- ================= OUTER PILL CARDS ================= -->
+
+        <!-- Left Stack 1: Synthetic Generation Components -->
+        <g transform="translate(20, 110)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">✨ Gemini 3.5 Flash</text>
+        </g>
+        <g transform="translate(20, 160)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🔒 Adversarial Jailbreaks</text>
+        </g>
+        <g transform="translate(20, 210)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">📋 Multi-Domain Presets</text>
+        </g>
+
+        <!-- Left Stack 2: Benchmarking Components -->
+        <g transform="translate(20, 310)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🎯 Candidate Prompt TDD</text>
+        </g>
+        <g transform="translate(20, 360)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">📊 0.0 - 1.0 Scoring Engine</text>
+        </g>
+        <g transform="translate(20, 410)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🔍 Side-by-Side Critique</text>
+        </g>
+
+        <!-- Left Stack 3: Context & MCP Components -->
+        <g transform="translate(20, 500)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🔌 Model Context (MCP)</text>
+        </g>
+        <g transform="translate(20, 550)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">📄 CSV Import & Export</text>
+        </g>
+        <g transform="translate(20, 600)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">📐 Pydantic v2 Schemas</text>
+        </g>
+
+        <!-- Right Stack 1: Resilience & Error Handling -->
+        <g transform="translate(780, 110)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🔄 Tenacity 3-Attempt Retry</text>
+        </g>
+        <g transform="translate(780, 160)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">⚡ Multi-Model Fallback</text>
+        </g>
+        <g transform="translate(780, 210)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">📬 Standard ErrorEnvelope</text>
+        </g>
+
+        <!-- Right Stack 2: Storage & Session State -->
+        <g transform="translate(780, 310)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🐘 PostgreSQL 16 Alpine</text>
+        </g>
+        <g transform="translate(780, 360)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🔗 Neon Serverless Postgres</text>
+        </g>
+        <g transform="translate(780, 410)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">👤 7-Day Session Scoping</text>
+        </g>
+
+        <!-- Right Stack 3: Cloud Infrastructure -->
+        <g transform="translate(780, 500)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🌐 Cloudflare Pages (Vue 3)</text>
+        </g>
+        <g transform="translate(780, 550)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">🚀 Render Scale-to-Zero</text>
+        </g>
+        <g transform="translate(780, 600)">
+          <rect width="160" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)" class="dark:fill-slate-800 dark:stroke-slate-700" />
+          <text x="14" y="24" font-size="12" font-weight="600" fill="#0f172a" class="dark:fill-slate-100">⚙️ GitHub Actions CI/CD</text>
+        </g>
+
+        <!-- ================= CENTRAL CORE / HUB ================= -->
+        <g transform="translate(480, 670)">
+          <!-- Glowing Outer Pulse Ring -->
+          <circle cx="0" cy="0" r="74" fill="none" stroke="#0284c7" stroke-width="3" class="pulse-ring" />
+          <!-- Core Sphere -->
+          <circle cx="0" cy="0" r="62" fill="url(#gradCore)" filter="url(#shadow)" />
+          <!-- Robot Icon Face / Emblem -->
+          <rect x="-30" y="-30" width="60" height="46" rx="14" fill="#ffffff" />
+          <!-- Eyes -->
+          <circle cx="-12" cy="-9" r="5" fill="#0284c7" />
+          <circle cx="12" cy="-9" r="5" fill="#0284c7" />
+          <!-- Smile -->
+          <path d="M -10 3 Q 0 10 10 3" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Label -->
+          <text x="0" y="32" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">EVALGEN</text>
+          <text x="0" y="45" font-size="9" font-weight="bold" fill="#bae6fd" text-anchor="middle">CORE ENGINE</text>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- Bottom Footer Callout (Matching Reference Bottom Pill) -->
+    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-semibold text-slate-700 dark:text-slate-300">Open-Source AI Engineering • Test-Driven Development (TDD) for LLMs</span>
+      </div>
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium">
+        <span>Follow along for real-world AI Engineering insights</span>
+        <span class="text-emerald-600 font-bold">→</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
